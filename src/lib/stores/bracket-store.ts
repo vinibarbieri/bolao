@@ -108,7 +108,15 @@ export const useBracketStore = create<BracketStore>((set, get) => ({
   },
 
   clearBracket() {
-    set({ picks: {}, isDirty: true });
+    set((state) => {
+      // Keep R32 home/away team positions (keys > 32, encoded as slot*100+1/2)
+      // Only clear match winner slots 1-32
+      const preserved: typeof state.picks = {};
+      for (const [key, team] of Object.entries(state.picks)) {
+        if (parseInt(key) > 32) preserved[parseInt(key)] = team;
+      }
+      return { picks: preserved, isDirty: true };
+    });
   },
 
   markClean() {

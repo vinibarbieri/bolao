@@ -5,6 +5,8 @@ import {
   getTeamsByGroup,
 } from "../queries";
 import { BracketBuilderClient } from "@/components/bracket/bracket-builder-client";
+import { getThirdPlaceAssignments, type GroupLetter } from "@/lib/tournament/third-place-lookup";
+import { resolveR32Matchups } from "@/lib/tournament/bracket-mapping";
 
 export default async function BracketPage() {
   const user = await requireUser();
@@ -20,6 +22,12 @@ export default async function BracketPage() {
     (p) => p.predictedPosition === 3 && p.advancesAsThird
   );
   const isReady = thirdPlaceTeams.length === 8;
+
+  // Resolve R32 matchups with actual group letters for 3rd-place slots
+  const qualifyingGroups = thirdPlaceTeams.map((p) => p.groupLetter as GroupLetter);
+  const resolvedMatchups = isReady
+    ? resolveR32Matchups(getThirdPlaceAssignments(qualifyingGroups).assignments)
+    : [];
 
   // Build team name map
   const allTeams = Object.values(teamsByGroup).flat();
@@ -90,6 +98,7 @@ export default async function BracketPage() {
         <BracketBuilderClient
           r32Teams={r32Teams}
           existingPicks={existingPicks}
+          resolvedMatchups={resolvedMatchups}
         />
       )}
     </div>

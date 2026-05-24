@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useBracketStore, type BracketTeam } from "@/lib/stores/bracket-store";
-import { R32_MATCHUPS, BRACKET_STRUCTURE } from "@/lib/tournament/bracket-mapping";
+import { type R32Matchup, BRACKET_STRUCTURE } from "@/lib/tournament/bracket-mapping";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 interface Props {
   r32Teams: { teamId: string; teamName: string; source: string }[];
   existingPicks: Record<number, BracketTeam>;
+  resolvedMatchups: R32Matchup[];
 }
 
 const ROUND_LABELS: Record<string, string> = {
@@ -40,43 +41,45 @@ function sourceString(source: { type: string; group: string }): string {
   return `${positionMap[source.type] ?? "?"}${source.group}`;
 }
 
-export function BracketBuilderClient({ r32Teams, existingPicks }: Props) {
+export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups }: Props) {
   const store = useBracketStore();
   const [saving, setSaving] = useState(false);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    if (!store.isInitialized) {
-      const picks: Record<number, BracketTeam | null> = {};
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
 
-      if (Object.keys(existingPicks).length > 0) {
-        for (const [slot, team] of Object.entries(existingPicks)) {
-          picks[parseInt(slot)] = team;
-        }
+    const picks: Record<number, BracketTeam | null> = {};
+
+    if (Object.keys(existingPicks).length > 0) {
+      for (const [slot, team] of Object.entries(existingPicks)) {
+        picks[parseInt(slot)] = team;
       }
-
-      // Always populate R32 home/away team positions from predictions
-      for (const matchup of R32_MATCHUPS) {
-        const homeTeam = r32Teams.find(
-          (t) => t.source === sourceString(matchup.homeSource)
-        );
-        const awayTeam = r32Teams.find(
-          (t) => t.source === sourceString(matchup.awaySource)
-        );
-
-        const hk = r32HomeKey(matchup.slot);
-        const ak = r32AwayKey(matchup.slot);
-
-        if (homeTeam && !picks[hk]) {
-          picks[hk] = { teamId: homeTeam.teamId, teamName: homeTeam.teamName };
-        }
-        if (awayTeam && !picks[ak]) {
-          picks[ak] = { teamId: awayTeam.teamId, teamName: awayTeam.teamName };
-        }
-      }
-
-      store.initialize(picks);
     }
-  }, [r32Teams, existingPicks, store]);
+
+    // Always populate R32 home/away team positions from predictions
+    for (const matchup of resolvedMatchups) {
+      const homeTeam = r32Teams.find(
+        (t) => t.source === sourceString(matchup.homeSource)
+      );
+      const awayTeam = r32Teams.find(
+        (t) => t.source === sourceString(matchup.awaySource)
+      );
+
+      const hk = r32HomeKey(matchup.slot);
+      const ak = r32AwayKey(matchup.slot);
+
+      if (homeTeam && !picks[hk]) {
+        picks[hk] = { teamId: homeTeam.teamId, teamName: homeTeam.teamName };
+      }
+      if (awayTeam && !picks[ak]) {
+        picks[ak] = { teamId: awayTeam.teamId, teamName: awayTeam.teamName };
+      }
+    }
+
+    store.initialize(picks);
+  }, [r32Teams, existingPicks, resolvedMatchups, store]);
 
   const handleAdvance = useCallback(
     (fromSlot: number, toSlot: number) => {
@@ -113,7 +116,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks }: Props) {
   }
 
   // Build R32 matchup cards
-  const r32Cards = R32_MATCHUPS.map((matchup) => {
+  const r32Cards = resolvedMatchups.map((matchup) => {
     const hk = r32HomeKey(matchup.slot);
     const ak = r32AwayKey(matchup.slot);
     const homeTeam = store.picks[hk] ?? null;

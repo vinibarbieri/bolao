@@ -146,6 +146,7 @@ export async function saveThirdPlaceSelections(teamIds: string[]) {
   });
 
   revalidatePath("/third-place");
+  revalidatePath("/bracket");
 }
 
 // === Score Predictions (Cosmetic) ===
