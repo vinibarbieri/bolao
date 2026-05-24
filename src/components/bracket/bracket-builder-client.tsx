@@ -145,7 +145,27 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
     roundCards[round] = BRACKET_STRUCTURE
       .filter((s) => s.round === round && s.sourceSlots)
       .map((slot) => {
-        const [s1, s2] = slot.sourceSlots!;
+        let s1: number, s2: number;
+
+        if (slot.round === "third") {
+          // Third-place match participants are the LOSERS of the two SFs.
+          // slot.sourceSlots = [29, 30] (the SF slots).
+          // For each SF, find which of its two source slots holds the loser
+          // (the team that is NOT the SF winner).
+          const [sf1, sf2] = slot.sourceSlots!;
+          const sf1Struct = BRACKET_STRUCTURE.find((s) => s.slotNumber === sf1)!;
+          const sf2Struct = BRACKET_STRUCTURE.find((s) => s.slotNumber === sf2)!;
+          const [sf1Src1, sf1Src2] = sf1Struct.sourceSlots!;
+          const [sf2Src1, sf2Src2] = sf2Struct.sourceSlots!;
+          const sf1Winner = store.picks[sf1];
+          const sf2Winner = store.picks[sf2];
+          // Loser slot = the source slot whose team is NOT the SF winner
+          s1 = sf1Winner && store.picks[sf1Src1]?.teamId === sf1Winner.teamId ? sf1Src2 : sf1Src1;
+          s2 = sf2Winner && store.picks[sf2Src1]?.teamId === sf2Winner.teamId ? sf2Src2 : sf2Src1;
+        } else {
+          [s1, s2] = slot.sourceSlots!;
+        }
+
         const team1 = store.picks[s1] ?? null;
         const team2 = store.picks[s2] ?? null;
         const winner = store.picks[slot.slotNumber] ?? null;
