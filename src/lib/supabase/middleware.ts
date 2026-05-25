@@ -4,6 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
+  // Local dev: skip Supabase Auth entirely. requireUser/getUser in
+  // src/lib/supabase/auth.ts returns a mock user when this flag is set.
+  if (process.env.DEV_BYPASS_AUTH === "true") {
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

@@ -3,13 +3,10 @@ import { db } from "@/db";
 import { matches } from "@/db/schema/matches";
 import { groupStandings } from "@/db/schema/teams";
 import { eq, and } from "drizzle-orm";
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/auth";
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

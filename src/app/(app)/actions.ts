@@ -17,15 +17,12 @@ import {
 import { profiles } from "@/db/schema/profiles";
 import { tournamentConfig } from "@/db/schema/matches";
 import { eq, and, sql } from "drizzle-orm";
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/auth";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 
 async function getAuthUserId(): Promise<string> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) throw new Error("Not authenticated");
   return user.id;
 }
@@ -44,10 +41,7 @@ async function checkNotLocked() {
 // === Profile ===
 
 export async function ensureProfile() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) throw new Error("Not authenticated");
 
   const existing = await db
