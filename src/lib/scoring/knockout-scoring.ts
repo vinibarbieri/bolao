@@ -4,12 +4,12 @@ import { matches } from "@/db/schema/matches";
 import { eq, and, ne } from "drizzle-orm";
 
 const POINTS: Record<string, number> = {
-  r16: 3,
-  qf: 5,
-  sf: 8,
-  third: 5,
-  final: 15,
-  champion: 30,
+  r16: 5,
+  qf: 8,
+  sf: 15,
+  third: 20,
+  final: 30,
+  champion: 50,
 };
 
 export async function calculateKnockoutScores(userId: string) {

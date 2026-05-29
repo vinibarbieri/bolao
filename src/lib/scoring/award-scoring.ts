@@ -82,8 +82,8 @@ export async function calculateTrioScores(userId: string) {
         userId,
         category: "golden_trio",
         subDetail: `Slot ${pick.slot}`,
-        points: count,
-        description: `Golden Trio pick won ${count} MOTM award${count > 1 ? "s" : ""}`,
+        points: count * 2,
+        description: `Golden Trio pick won ${count} MOTM award${count > 1 ? "s" : ""} (${count * 2} pts)`,
       });
     }
   }
