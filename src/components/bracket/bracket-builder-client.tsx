@@ -15,6 +15,7 @@ interface Props {
   r32Teams: { teamId: string; teamName: string; source: string }[];
   existingPicks: Record<number, BracketTeam>;
   resolvedMatchups: R32Matchup[];
+  knockoutRoundPoints?: Record<string, number>;
 }
 
 const ROUND_LABELS: Record<string, string> = {
@@ -43,7 +44,7 @@ function sourceString(source: { type: string; group: string }): string {
   return `${positionMap[source.type] ?? "?"}${source.group}`;
 }
 
-export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups }: Props) {
+export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups, knockoutRoundPoints = {} }: Props) {
   const store = useBracketStore();
   const [saving, setSaving] = useState(false);
   const hasInitialized = useRef(false);
@@ -163,6 +164,8 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
   const champion = store.picks[32];
 
+  const totalKnockoutPoints = Object.values(knockoutRoundPoints).reduce((a, b) => a + b, 0);
+
   // Slot groupings per half. Left feeds SF 29, right feeds SF 30; both meet
   // at the Final (32). Teams in the same half can only meet by the semi-final.
   const LEFT = { r32: [1, 2, 3, 4, 5, 6, 7, 8], r16: [17, 18, 19, 20], qf: [25, 26], sf: [29] };
@@ -195,6 +198,11 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
         ) : (
           <span className="text-sm text-muted-foreground">Bracket saved</span>
         )}
+        {totalKnockoutPoints > 0 && (
+          <span className="ml-auto rounded-full bg-qualified/15 px-3 py-1 font-mono text-sm font-bold text-qualified-foreground">
+            +{totalKnockoutPoints} pts earned
+          </span>
+        )}
       </div>
 
       <div className="overflow-x-auto pb-4">
@@ -203,13 +211,13 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           <BracketColumn label={ROUND_LABELS.r32}>
             {LEFT.r32.map((s) => renderSlotCard(s))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.r16}>
+          <BracketColumn label={ROUND_LABELS.r16} scoringPoints={3}>
             {LEFT.r16.map((s) => renderSlotCard(s))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.qf}>
+          <BracketColumn label={ROUND_LABELS.qf} scoringPoints={5}>
             {LEFT.qf.map((s) => renderSlotCard(s))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.sf}>
+          <BracketColumn label={ROUND_LABELS.sf} scoringPoints={8}>
             {LEFT.sf.map((s) => renderSlotCard(s))}
           </BracketColumn>
 
@@ -217,7 +225,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           <div className="flex min-w-[220px] flex-col items-center justify-center gap-4">
             {/* Champion (above the final) */}
             <div className="flex flex-col items-center gap-2">
-              <RoundHeading className="mb-0 text-gold-foreground">
+              <RoundHeading className="mb-0 text-gold-foreground" scoringPoints={30}>
                 Champion
               </RoundHeading>
               <span className="bg-brand-gradient flex h-14 w-14 items-center justify-center rounded-2xl text-brand-foreground shadow-md">
@@ -240,7 +248,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
             {/* Final */}
             <div className="w-full">
-              <RoundHeading className="text-center">
+              <RoundHeading className="text-center" scoringPoints={15}>
                 {ROUND_LABELS.final}
               </RoundHeading>
               {renderSlotCard(32)}
@@ -256,13 +264,13 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           </div>
 
           {/* RIGHT HALF (mirrored) */}
-          <BracketColumn label={ROUND_LABELS.sf} align="right">
+          <BracketColumn label={ROUND_LABELS.sf} align="right" scoringPoints={8}>
             {RIGHT.sf.map((s) => renderSlotCard(s, true))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.qf} align="right">
+          <BracketColumn label={ROUND_LABELS.qf} align="right" scoringPoints={5}>
             {RIGHT.qf.map((s) => renderSlotCard(s, true))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.r16} align="right">
+          <BracketColumn label={ROUND_LABELS.r16} align="right" scoringPoints={3}>
             {RIGHT.r16.map((s) => renderSlotCard(s, true))}
           </BracketColumn>
           <BracketColumn label={ROUND_LABELS.r32} align="right">
@@ -277,18 +285,25 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 function RoundHeading({
   children,
   className,
+  scoringPoints,
 }: {
   children: React.ReactNode;
   className?: string;
+  scoringPoints?: number;
 }) {
   return (
     <h3
       className={cn(
-        "mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground",
+        "mb-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground",
         className,
       )}
     >
       {children}
+      {scoringPoints !== undefined && (
+        <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold normal-case tracking-normal text-primary">
+          +{scoringPoints}
+        </span>
+      )}
     </h3>
   );
 }
@@ -297,21 +312,30 @@ function BracketColumn({
   label,
   children,
   align = "left",
+  scoringPoints,
 }: {
   label: string;
   children: React.ReactNode;
   align?: "left" | "right";
+  scoringPoints?: number;
 }) {
   return (
     <div className="flex w-[180px] flex-shrink-0 flex-col sm:w-[200px]">
-      <h3
+      <div
         className={cn(
-          "mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground",
-          align === "right" && "text-right",
+          "mb-3 flex items-center gap-2",
+          align === "right" ? "justify-end" : "justify-start",
         )}
       >
-        {label}
-      </h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </h3>
+        {scoringPoints !== undefined && (
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary">
+            +{scoringPoints}
+          </span>
+        )}
+      </div>
       <div className="flex h-full flex-col justify-around gap-3">{children}</div>
     </div>
   );

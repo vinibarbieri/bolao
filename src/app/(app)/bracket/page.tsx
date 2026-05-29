@@ -3,6 +3,7 @@ import {
   getUserGroupPredictions,
   getUserBracketPicks,
   getTeamsByGroup,
+  getUserScoreBreakdown,
 } from "../queries";
 import { BracketBuilderClient } from "@/components/bracket/bracket-builder-client";
 import { getThirdPlaceAssignments, type GroupLetter } from "@/lib/tournament/third-place-lookup";
@@ -13,11 +14,18 @@ import { Trophy, AlertTriangle } from "lucide-react";
 export default async function BracketPage() {
   const user = await requireUser();
 
-  const [predictions, bracketPicks, teamsByGroup] = await Promise.all([
+  const [predictions, bracketPicks, teamsByGroup, scoreBreakdown] = await Promise.all([
     getUserGroupPredictions(user.id),
     getUserBracketPicks(user.id),
     getTeamsByGroup(),
+    getUserScoreBreakdown(user.id),
   ]);
+
+  const knockoutRoundPoints: Record<string, number> = {};
+  for (const row of scoreBreakdown.filter((r) => r.category === "knockout")) {
+    const round = row.subDetail?.toLowerCase() ?? "";
+    knockoutRoundPoints[round] = (knockoutRoundPoints[round] ?? 0) + row.points;
+  }
 
   // Check if 3rd place selection is complete
   const thirdPlaceTeams = predictions.filter(
@@ -103,6 +111,7 @@ export default async function BracketPage() {
           r32Teams={r32Teams}
           existingPicks={existingPicks}
           resolvedMatchups={resolvedMatchups}
+          knockoutRoundPoints={knockoutRoundPoints}
         />
       )}
     </div>

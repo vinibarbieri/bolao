@@ -32,9 +32,11 @@ interface TrioPick {
 export function GoldenTrioClient({
   existingTrio,
   players,
+  slotPoints = {},
 }: {
   existingTrio: TrioPick[];
   players: Player[];
+  slotPoints?: Record<number, number>;
 }) {
   const playerMap = useMemo(
     () => new Map(players.map((p) => [p.id, p])),
@@ -144,6 +146,11 @@ export function GoldenTrioClient({
                         {player.teamId} · {player.position}
                       </p>
                     </div>
+                    {(slotPoints[slot + 1] ?? 0) > 0 && (
+                      <span className="rounded-full bg-qualified/15 px-2 py-0.5 font-mono text-xs font-bold text-qualified-foreground">
+                        +{slotPoints[slot + 1]} pts
+                      </span>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"

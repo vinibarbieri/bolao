@@ -20,9 +20,11 @@ interface ThirdPlaceTeam {
 
 interface Props {
   teams: ThirdPlaceTeam[];
+  earnedThirdSet?: string[];
 }
 
-export function ThirdPlaceSelectorClient({ teams }: Props) {
+export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) {
+  const earnedSet = new Set(earnedThirdSet);
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(
     new Set(teams.filter((t) => t.isSelected).map((t) => t.teamId))
@@ -134,6 +136,11 @@ export function ThirdPlaceSelectorClient({ teams }: Props) {
                   <Badge variant="outline" className="font-mono">
                     {team.teamId}
                   </Badge>
+                  {earnedSet.has(team.teamId) && (
+                    <span className="rounded-full bg-qualified/15 px-2 py-0.5 font-mono text-xs font-bold text-qualified-foreground">
+                      +2
+                    </span>
+                  )}
                 </CardContent>
               </Card>
             );

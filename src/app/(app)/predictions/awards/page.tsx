@@ -1,15 +1,21 @@
 import { requireUser } from "@/lib/supabase/auth";
-import { getUserAwardPredictions, getAllPlayers } from "../../queries";
+import { getUserAwardPredictions, getAllPlayers, getUserScoreBreakdown } from "../../queries";
 import { AwardsPredictionClient } from "./awards-client";
 import { PageHeader } from "@/components/page-header";
 import { Award } from "lucide-react";
 
 export default async function AwardsPage() {
   const user = await requireUser();
-  const [predictions, players] = await Promise.all([
+  const [predictions, players, scoreBreakdown] = await Promise.all([
     getUserAwardPredictions(user.id),
     getAllPlayers(),
+    getUserScoreBreakdown(user.id),
   ]);
+
+  const awardPointsMap: Record<string, number> = {};
+  for (const row of scoreBreakdown.filter((r) => r.category === "awards")) {
+    if (row.subDetail) awardPointsMap[row.subDetail] = row.points;
+  }
 
   return (
     <div className="space-y-6">
@@ -22,6 +28,7 @@ export default async function AwardsPage() {
       <AwardsPredictionClient
         existingPredictions={predictions}
         players={players}
+        earnedPointsMap={awardPointsMap}
       />
     </div>
   );

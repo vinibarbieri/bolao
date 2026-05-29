@@ -1,18 +1,26 @@
 import { requireUser } from "@/lib/supabase/auth";
-import { getTeamsByGroup, getUserGroupPredictions, getGroupMatches, getUserScorePredictions } from "../queries";
+import { getTeamsByGroup, getUserGroupPredictions, getGroupMatches, getUserScorePredictions, getUserScoreBreakdown } from "../queries";
 import { GroupSimulatorClient } from "@/components/group-simulator/group-simulator-client";
 import { PageHeader } from "@/components/page-header";
+import { ScoringGuide } from "@/components/scoring-guide";
 import { Volleyball } from "lucide-react";
 import type { GroupLetter } from "@/lib/stores/group-simulator-store";
 
 export default async function GroupsPage() {
   const user = await requireUser();
 
-  const [teamsByGroup, predictions, scorePredictions] = await Promise.all([
+  const [teamsByGroup, predictions, scorePredictions, scoreBreakdown] = await Promise.all([
     getTeamsByGroup(),
     getUserGroupPredictions(user.id),
     getUserScorePredictions(user.id),
+    getUserScoreBreakdown(user.id),
   ]);
+
+  const teamPointsMap: Record<string, number> = {};
+  for (const row of scoreBreakdown.filter((r) => r.category === "group")) {
+    const teamId = row.description?.split(" ")[0];
+    if (teamId) teamPointsMap[teamId] = (teamPointsMap[teamId] ?? 0) + row.points;
+  }
 
   // Fetch all group matches
   const groupLetters: GroupLetter[] = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
@@ -73,10 +81,19 @@ export default async function GroupsPage() {
         description="Drag and drop teams to predict the final standings for each group"
       />
 
+      <ScoringGuide
+        items={[
+          { label: "Exact position", points: 3 },
+          { label: "Top-2 advance", points: 2 },
+          { label: "Best 3rd qualifies", points: 2 },
+        ]}
+      />
+
       <GroupSimulatorClient
         initialPlacements={initialPlacements}
         initialScores={initialScores}
         initialThirdPlaces={selectedThirdPlaces}
+        teamPointsMap={teamPointsMap}
       />
     </div>
   );

@@ -30,12 +30,14 @@ interface Props {
     }[]
   >;
   initialThirdPlaces: string[];
+  teamPointsMap: Record<string, number>;
 }
 
 export function GroupSimulatorClient({
   initialPlacements,
   initialScores,
   initialThirdPlaces,
+  teamPointsMap,
 }: Props) {
   const store = useGroupSimulatorStore();
 
@@ -126,6 +128,7 @@ export function GroupSimulatorClient({
             onReorder={(from, to) =>
               store.reorderPlacement(store.activeGroup, from, to)
             }
+            teamPointsMap={teamPointsMap}
           />
         </TabsContent>
 
@@ -164,6 +167,7 @@ export function GroupSimulatorClient({
                 onReorder={(from, to) =>
                   store.reorderPlacement(store.activeGroup, from, to)
                 }
+                teamPointsMap={teamPointsMap}
               />
             </div>
             <div>

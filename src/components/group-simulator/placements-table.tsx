@@ -27,12 +27,14 @@ interface PlacementsTableProps {
   group: GroupLetter;
   placements: TeamPlacement[];
   onReorder: (fromIndex: number, toIndex: number) => void;
+  teamPointsMap?: Record<string, number>;
 }
 
 export function PlacementsTable({
   group,
   placements,
   onReorder,
+  teamPointsMap = {},
 }: PlacementsTableProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -76,6 +78,7 @@ export function PlacementsTable({
                   key={team.teamId}
                   team={team}
                   position={index + 1}
+                  earnedPoints={teamPointsMap[team.teamId] ?? 0}
                 />
               ))}
             </div>
@@ -89,9 +92,11 @@ export function PlacementsTable({
 function SortableTeamRow({
   team,
   position,
+  earnedPoints = 0,
 }: {
   team: TeamPlacement;
   position: number;
+  earnedPoints?: number;
 }) {
   const {
     attributes,
@@ -148,6 +153,11 @@ function SortableTeamRow({
       <span className="font-mono text-xs uppercase text-muted-foreground">
         {team.teamId}
       </span>
+      {earnedPoints > 0 && (
+        <span className="rounded-full bg-qualified/15 px-2 py-0.5 font-mono text-xs font-bold text-qualified-foreground">
+          +{earnedPoints}
+        </span>
+      )}
       <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground/60" />
     </div>
   );

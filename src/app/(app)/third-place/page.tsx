@@ -1,15 +1,25 @@
 import { requireUser } from "@/lib/supabase/auth";
-import { getUserGroupPredictions, getTeamsByGroup } from "../queries";
+import { getUserGroupPredictions, getTeamsByGroup, getUserScoreBreakdown } from "../queries";
 import { ThirdPlaceSelectorClient } from "@/components/third-place/third-place-selector-client";
 import { PageHeader } from "@/components/page-header";
+import { ScoringGuide } from "@/components/scoring-guide";
 import { Medal, AlertTriangle } from "lucide-react";
 
 export default async function ThirdPlacePage() {
   const user = await requireUser();
-  const [predictions, teamsByGroup] = await Promise.all([
+  const [predictions, teamsByGroup, scoreBreakdown] = await Promise.all([
     getUserGroupPredictions(user.id),
     getTeamsByGroup(),
+    getUserScoreBreakdown(user.id),
   ]);
+
+  const earnedThirdSet = new Set<string>();
+  for (const row of scoreBreakdown.filter((r) => r.category === "group")) {
+    if (row.description?.includes("qualifying 3rd-place")) {
+      const teamId = row.description.split(" ")[0];
+      earnedThirdSet.add(teamId);
+    }
+  }
 
   // Get all teams predicted as 3rd place
   const thirdPlaceTeams = predictions
@@ -35,6 +45,8 @@ export default async function ThirdPlacePage() {
         description="Select exactly 8 of the 12 third-place teams you think will qualify for the Round of 32"
       />
 
+      <ScoringGuide items={[{ label: "Each correct qualifier", points: 2 }]} />
+
       {!hasAllGroups ? (
         <div className="flex items-start gap-3 rounded-xl border border-third/50 bg-third/10 p-6">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-third-foreground" />
@@ -49,7 +61,7 @@ export default async function ThirdPlacePage() {
           </div>
         </div>
       ) : (
-        <ThirdPlaceSelectorClient teams={thirdPlaceTeams} />
+        <ThirdPlaceSelectorClient teams={thirdPlaceTeams} earnedThirdSet={Array.from(earnedThirdSet)} />
       )}
     </div>
   );
