@@ -155,3 +155,12 @@ export async function getUserScoreBreakdown(userId: string) {
     .where(eq(userScores.userId, userId))
     .orderBy(asc(userScores.category));
 }
+
+export async function getUserProfile(userId: string) {
+  const result = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.id, userId))
+    .limit(1);
+  return result[0] ?? null;
+}

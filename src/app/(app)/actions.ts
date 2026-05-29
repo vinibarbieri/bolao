@@ -68,6 +68,19 @@ export async function ensureProfile() {
   return user.id;
 }
 
+export async function updateDisplayName(displayName: string) {
+  const userId = await getAuthUserId();
+  const trimmed = displayName.trim();
+  if (!trimmed || trimmed.length > 50) {
+    throw new Error("Display name must be between 1 and 50 characters.");
+  }
+  await db
+    .update(profiles)
+    .set({ displayName: trimmed })
+    .where(eq(profiles.id, userId));
+  revalidatePath("/", "layout");
+}
+
 // === Group Predictions ===
 
 export async function saveGroupPredictions(

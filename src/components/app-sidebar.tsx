@@ -132,18 +132,25 @@ export function AppSidebar({
 
       <div className="border-t p-3">
         <div className="flex items-center gap-3 rounded-lg p-1.5">
-          <Avatar className="h-9 w-9 ring-2 ring-sidebar-border">
-            <AvatarImage src={user.avatar} />
-            <AvatarFallback className="bg-brand-gradient text-xs font-bold text-brand-foreground">
-              {user.name.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {user.email}
-            </p>
-          </div>
+          <Link
+            href="/settings"
+            onClick={onNavigate}
+            className="flex min-w-0 flex-1 items-center gap-3"
+            aria-label="Profile settings"
+          >
+            <Avatar className="h-9 w-9 ring-2 ring-sidebar-border">
+              <AvatarImage src={user.avatar} />
+              <AvatarFallback className="bg-brand-gradient text-xs font-bold text-brand-foreground">
+                {user.name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{user.name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {user.email}
+              </p>
+            </div>
+          </Link>
           <Button
             variant="ghost"
             size="icon"
