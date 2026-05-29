@@ -1,6 +1,6 @@
 import { requireUser } from "@/lib/supabase/auth";
 import { ensureProfile } from "../actions";
-import { getUserLeagues, getTournamentConfig, getUserGroupPredictions, getUserBracketPicks } from "../queries";
+import { getUserLeagues, getTournamentConfig, getUserGroupPredictions, getUserBracketPicks, getUserAwardPredictions, getUserGoldenTrio } from "../queries";
 import {
   Card,
   CardContent,
@@ -28,24 +28,28 @@ export default async function DashboardPage() {
   const user = await requireUser();
   await ensureProfile();
 
-  const [config, leagues, groupPreds, bracketPicks] = await Promise.all([
+  const [config, leagues, groupPreds, bracketPicks, awardPreds, trioPreds] = await Promise.all([
     getTournamentConfig(),
     getUserLeagues(user.id),
     getUserGroupPredictions(user.id),
     getUserBracketPicks(user.id),
+    getUserAwardPredictions(user.id),
+    getUserGoldenTrio(user.id),
   ]);
 
   const isLocked = config?.isLocked ?? false;
   const groupsCompleted = new Set(groupPreds.map((p) => p.groupLetter)).size;
   const hasBracket = bracketPicks.length > 0;
   const thirdPlaceSelected = groupPreds.filter((p) => p.advancesAsThird).length;
+  const hasAwards = awardPreds.length === 4;
+  const hasTrio = trioPreds.length === 3;
 
   const steps = [
     groupsCompleted === 12,
     thirdPlaceSelected === 8,
     hasBracket,
-    false, // awards
-    false, // trio
+    hasAwards,
+    hasTrio,
     leagues.length > 0,
   ];
   const completedSteps = steps.filter(Boolean).length;
@@ -165,12 +169,12 @@ export default async function DashboardPage() {
                 href="/bracket"
               />
               <ChecklistItem
-                done={false}
+                done={hasAwards}
                 label="Pick award winners"
                 href="/predictions/awards"
               />
               <ChecklistItem
-                done={false}
+                done={hasTrio}
                 label="Select your Golden Trio"
                 href="/predictions/trio"
               />
