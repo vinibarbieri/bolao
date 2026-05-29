@@ -410,3 +410,41 @@ export async function joinLeague(inviteCode: string) {
   revalidatePath("/leagues");
   return league[0];
 }
+
+// Idempotent join used by the invite-link flow. Unlike joinLeague it does
+// not throw when the user is already a member — it just returns the league.
+export async function joinLeagueByCode(inviteCode: string) {
+  const userId = await getAuthUserId();
+
+  const league = await db
+    .select()
+    .from(leagues)
+    .where(eq(leagues.inviteCode, inviteCode))
+    .limit(1);
+
+  if (league.length === 0) {
+    throw new Error("Invalid invite code");
+  }
+
+  const existing = await db
+    .select()
+    .from(leagueMembers)
+    .where(
+      and(
+        eq(leagueMembers.leagueId, league[0].id),
+        eq(leagueMembers.userId, userId)
+      )
+    )
+    .limit(1);
+
+  if (existing.length === 0) {
+    await db.insert(leagueMembers).values({
+      leagueId: league[0].id,
+      userId,
+      status: "accepted",
+    });
+    revalidatePath("/leagues");
+  }
+
+  return league[0];
+}

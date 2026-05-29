@@ -24,6 +24,7 @@ import {
 import { Trophy, Crown, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
+import { CopyInviteLink } from "../copy-invite-link";
 
 export default async function LeagueDetailPage({
   params,
@@ -49,11 +50,11 @@ export default async function LeagueDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <span className="bg-brand-gradient flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-sm">
           <Trophy className="h-6 w-6" />
         </span>
-        <div>
+        <div className="flex-1">
           <h1 className="font-heading text-3xl font-bold uppercase tracking-wide sm:text-4xl">
             {league[0].name}
           </h1>
@@ -64,6 +65,7 @@ export default async function LeagueDetailPage({
             </Badge>
           </div>
         </div>
+        <CopyInviteLink inviteCode={league[0].inviteCode} />
       </div>
 
       <Card>

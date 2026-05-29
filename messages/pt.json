@@ -127,7 +127,10 @@
     "leagueCreated": "Liga criada!",
     "leagueJoined": "Entrou na liga!",
     "failedCreate": "Falha ao criar liga",
-    "failedJoin": "Falha ao entrar na liga"
+    "failedJoin": "Falha ao entrar na liga",
+    "copyInviteLink": "Copiar link de convite",
+    "linkCopied": "Link de convite copiado!",
+    "linkCopyFailed": "Falha ao copiar o link"
   },
   "LeagueDetail": {
     "inviteCode": "Código de convite:",

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { CopyInviteLink } from "./copy-invite-link";
 
 interface League {
   id: string;
@@ -135,7 +136,7 @@ export function LeaguesClient({ leagues }: { leagues: League[] }) {
                       <ChevronRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">
                         {t("code")}
@@ -144,6 +145,7 @@ export function LeaguesClient({ leagues }: { leagues: League[] }) {
                         {league.inviteCode}
                       </Badge>
                     </div>
+                    <CopyInviteLink inviteCode={league.inviteCode} />
                   </CardContent>
                 </Card>
               </Link>

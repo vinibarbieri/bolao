@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,8 +20,22 @@ import { LocaleToggle } from "@/components/locale-toggle";
 const isDev = process.env.NODE_ENV === "development";
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const t = useTranslations("Login");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Only allow internal relative paths to prevent open-redirect.
+  const rawNext = searchParams.get("next");
+  const next = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+    ? rawNext
+    : "/dashboard";
   const [email, setEmail] = useState("dev@bolao.local");
   const [password, setPassword] = useState("devpassword");
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +46,7 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/callback`,
+        redirectTo: `${window.location.origin}/callback?next=${encodeURIComponent(next)}`,
       },
     });
   };
@@ -51,7 +65,7 @@ export default function LoginPage() {
         return;
       }
     }
-    router.push("/dashboard");
+    router.push(next);
     router.refresh();
   };
 

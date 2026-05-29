@@ -127,7 +127,10 @@
     "leagueCreated": "League created!",
     "leagueJoined": "Joined league!",
     "failedCreate": "Failed to create league",
-    "failedJoin": "Failed to join league"
+    "failedJoin": "Failed to join league",
+    "copyInviteLink": "Copy invite link",
+    "linkCopied": "Invite link copied!",
+    "linkCopyFailed": "Failed to copy link"
   },
   "LeagueDetail": {
     "inviteCode": "Invite code:",

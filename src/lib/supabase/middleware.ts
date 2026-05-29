@@ -44,6 +44,9 @@ export async function updateSession(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    // Preserve where the user was headed so we can redirect back after login
+    // (e.g. invite links at /join/[code]).
+    url.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
 
