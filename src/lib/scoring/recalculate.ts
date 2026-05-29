@@ -3,6 +3,7 @@ import { profiles } from "@/db/schema/profiles";
 import { userScores, leaderboardCache } from "@/db/schema/scores";
 import { leagueMembers } from "@/db/schema/leagues";
 import { knockoutPredictions } from "@/db/schema/predictions";
+import { matches } from "@/db/schema/matches";
 import { eq, and, sql } from "drizzle-orm";
 import { calculateGroupScores } from "./group-scoring";
 import { calculateKnockoutScores } from "./knockout-scoring";
@@ -10,6 +11,14 @@ import { calculateAwardScores, calculateTrioScores } from "./award-scoring";
 
 export async function recalculateAllScores() {
   const allUsers = await db.select().from(profiles);
+
+  // Resolve the actual champion once — winner of the finished final match
+  const finalMatch = await db
+    .select({ winnerTeamId: matches.winnerTeamId })
+    .from(matches)
+    .where(and(eq(matches.stage, "final"), eq(matches.status, "finished")))
+    .limit(1);
+  const actualChampionId = finalMatch[0]?.winnerTeamId ?? null;
 
   await db.transaction(async (tx) => {
     // Clear all existing scores
@@ -43,18 +52,20 @@ export async function recalculateAllScores() {
       const total = groupTotal + knockoutTotal + awardTotal + trioTotal;
 
       // Check if user predicted champion correctly
-      const championPred = await db
-        .select()
-        .from(knockoutPredictions)
-        .where(
-          and(
-            eq(knockoutPredictions.userId, user.id),
-            eq(knockoutPredictions.round, "champion")
+      let championCorrect = false;
+      if (actualChampionId) {
+        const championPred = await db
+          .select({ teamId: knockoutPredictions.teamId })
+          .from(knockoutPredictions)
+          .where(
+            and(
+              eq(knockoutPredictions.userId, user.id),
+              eq(knockoutPredictions.round, "champion")
+            )
           )
-        )
-        .limit(1);
-
-      const championCorrect = championPred.length > 0; // simplified check
+          .limit(1);
+        championCorrect = championPred[0]?.teamId === actualChampionId;
+      }
 
       // Get all leagues this user belongs to
       const memberships = await db
