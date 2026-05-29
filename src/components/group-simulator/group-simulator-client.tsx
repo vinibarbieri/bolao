@@ -70,15 +70,17 @@ export function GroupSimulatorClient({
     scrollRef.current?.scrollBy({ left: dir === "left" ? -160 : 160, behavior: "smooth" });
   }, []);
 
+  const hasInitialized = useRef(false);
   useEffect(() => {
-    if (!store.isInitialized) {
-      store.initialize({
-        placements: initialPlacements as Record<GroupLetter, typeof initialPlacements["A"]>,
-        scores: initialScores as Record<GroupLetter, typeof initialScores["A"]>,
-        selectedThirdPlaces: initialThirdPlaces,
-      });
-    }
-  }, [initialPlacements, initialScores, initialThirdPlaces, store]);
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+    store.initialize({
+      placements: initialPlacements as Record<GroupLetter, typeof initialPlacements["A"]>,
+      scores: initialScores as Record<GroupLetter, typeof initialScores["A"]>,
+      selectedThirdPlaces: initialThirdPlaces,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSave = useCallback(async () => {
     try {

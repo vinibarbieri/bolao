@@ -16,7 +16,7 @@ import {
 } from "@/db/schema/leagues";
 import { profiles } from "@/db/schema/profiles";
 import { tournamentConfig } from "@/db/schema/matches";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { getUser } from "@/lib/supabase/auth";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
@@ -115,6 +115,8 @@ export async function saveGroupPredictions(
   });
 
   revalidatePath("/groups");
+  revalidatePath("/third-place");
+  revalidatePath("/bracket");
 }
 
 export async function saveThirdPlaceSelections(teamIds: string[]) {
@@ -126,6 +128,26 @@ export async function saveThirdPlaceSelections(teamIds: string[]) {
   }
 
   await db.transaction(async (tx) => {
+    // Verify every selected team is still predicted at position 3. If a
+    // selection is stale (the team moved away from 3rd in a newer group save),
+    // fail loudly instead of silently updating 0 rows for it.
+    const eligible = await tx
+      .select({ teamId: groupPredictions.teamId })
+      .from(groupPredictions)
+      .where(
+        and(
+          eq(groupPredictions.userId, userId),
+          eq(groupPredictions.predictedPosition, 3),
+          inArray(groupPredictions.teamId, teamIds)
+        )
+      );
+
+    if (eligible.length !== teamIds.length) {
+      throw new Error(
+        "Some selected teams are no longer in 3rd place. Please reload and choose again."
+      );
+    }
+
     // Reset all advances_as_third to false
     await tx
       .update(groupPredictions)
