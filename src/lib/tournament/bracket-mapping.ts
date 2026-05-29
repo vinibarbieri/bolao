@@ -114,163 +114,142 @@ export const BRACKET_STRUCTURE: BracketSlot[] = [
 // R32 matchups - who plays whom in the Round of 32
 // ---------------------------------------------------------------------------
 //
-// Design principles:
-//  - Group winners (seeds) are placed in odd-numbered slots as "home"
-//    and face 3rd-place qualifiers as "away" -- 8 such matches.
-//  - Even-numbered slots pit runners-up against each other, drawn from
-//    different groups to prevent same-group rematches.
-//  - The pairing ensures that teams from the same group cannot meet
-//    until the QF at the earliest.
-//  - Remaining 4 group winners (I, J, K, L) who don't face 3rd-place
-//    teams instead face runners-up from distant groups.
+// These are the OFFICIAL FIFA 2026 Round of 32 pairings (tournament matches
+// 73-88). Internal slots 1-16 map onto the official match numbers so that the
+// standard adjacent-pair tree in BRACKET_STRUCTURE reproduces the official
+// Round-of-16/QF/SF/Final feed-forward.
 //
-// Bracket layout (left half / right half):
+//   slot -> FIFA match : matchup
+//   ----   ----------   --------------------------------
+//    1  ->  M74       : 1E vs 3rd        (3rd from C/E/F/H/I... per matrix)
+//    2  ->  M77       : 1I vs 3rd
+//    3  ->  M73       : 2A vs 2B
+//    4  ->  M75       : 1F vs 2C
+//    5  ->  M83       : 2K vs 2L
+//    6  ->  M84       : 1H vs 2J
+//    7  ->  M81       : 1D vs 3rd
+//    8  ->  M82       : 1G vs 3rd
+//    9  ->  M76       : 1C vs 2F
+//   10  ->  M78       : 2E vs 2I
+//   11  ->  M79       : 1A vs 3rd
+//   12  ->  M80       : 1L vs 3rd
+//   13  ->  M86       : 1J vs 2H
+//   14  ->  M88       : 2D vs 2G
+//   15  ->  M85       : 1B vs 3rd
+//   16  ->  M87       : 1K vs 3rd
 //
-//  LEFT HALF (slots 1-8 -> R16 slots 17-20 -> QF 25-26 -> SF 29)
-//    Slot 1:  1A  vs  3rd(pool)     --\
-//    Slot 2:  2C  vs  2D            --/-- R16 #17
-//    Slot 3:  1B  vs  3rd(pool)     --\
-//    Slot 4:  2E  vs  2F            --/-- R16 #18
-//    Slot 5:  1C  vs  3rd(pool)     --\
-//    Slot 6:  2A  vs  2B            --/-- R16 #19
-//    Slot 7:  1D  vs  3rd(pool)     --\
-//    Slot 8:  1I  vs  2H            --/-- R16 #20
+// The 8 group winners that face a 3rd-place team are A, B, D, E, G, I, K, L
+// (matrix columns). Their slots are 11, 15, 7, 1, 8, 2, 16, 12 respectively.
+// The specific 3rd-place group per slot is resolved at runtime from the
+// official matrix (see third-place-lookup.ts).
 //
-//  RIGHT HALF (slots 9-16 -> R16 slots 21-24 -> QF 27-28 -> SF 30)
-//    Slot 9:  1E  vs  3rd(pool)     --\
-//    Slot 10: 2G  vs  2J            --/-- R16 #21
-//    Slot 11: 1F  vs  3rd(pool)     --\
-//    Slot 12: 2I  vs  2L            --/-- R16 #22
-//    Slot 13: 1G  vs  3rd(pool)     --\
-//    Slot 14: 1J  vs  2K            --/-- R16 #23
-//    Slot 15: 1H  vs  3rd(pool)     --\
-//    Slot 16: 1K  vs  2G... wait
-//
-// Correction -- let's use a clean, balanced assignment:
-//
-// With 12 group winners, 12 runners-up, and 8 third-place teams:
-//  - 8 group winners face 3rd-place teams (odd slots: 1,3,5,7,9,11,13,15)
-//  - 4 group winners face runners-up from distant groups (even slots among the remaining)
-//  - 8 runners-up face each other in 4 matches (4 even slots)
-//  Total: 8 + 4 + 4 = 16 matches
+// Left half = slots 1-8 (feed SF 29); right half = slots 9-16 (feed SF 30).
 
 export const R32_MATCHUPS: R32Matchup[] = [
   // -----------------------------------------------------------------------
-  // LEFT HALF OF BRACKET
+  // LEFT HALF OF BRACKET (slots 1-8 -> R16 17-20 -> QF 25-26 -> SF 29)
   // -----------------------------------------------------------------------
 
-  // -- Quarter 1 (feeds QF slot 25 via R16 slots 17, 18) --
-
-  // R32 slot 1: Group A winner vs 3rd-place qualifier
+  // R32 slot 1 (M74): Group E winner vs 3rd-place qualifier
   {
     slot: 1,
-    homeSource: { type: 'group_winner', group: 'A' },
+    homeSource: { type: 'group_winner', group: 'E' },
     awaySource: { type: 'third_place', group: 'TBD' },
   },
-  // R32 slot 2: Group C runner-up vs Group D runner-up
+  // R32 slot 2 (M77): Group I winner vs 3rd-place qualifier
   {
     slot: 2,
-    homeSource: { type: 'group_runner_up', group: 'C' },
-    awaySource: { type: 'group_runner_up', group: 'D' },
+    homeSource: { type: 'group_winner', group: 'I' },
+    awaySource: { type: 'third_place', group: 'TBD' },
   },
-  // R32 slot 3: Group B winner vs 3rd-place qualifier
+  // R32 slot 3 (M73): Group A runner-up vs Group B runner-up
   {
     slot: 3,
-    homeSource: { type: 'group_winner', group: 'B' },
-    awaySource: { type: 'third_place', group: 'TBD' },
-  },
-  // R32 slot 4: Group E runner-up vs Group F runner-up
-  {
-    slot: 4,
-    homeSource: { type: 'group_runner_up', group: 'E' },
-    awaySource: { type: 'group_runner_up', group: 'F' },
-  },
-
-  // -- Quarter 2 (feeds QF slot 26 via R16 slots 19, 20) --
-
-  // R32 slot 5: Group C winner vs 3rd-place qualifier
-  {
-    slot: 5,
-    homeSource: { type: 'group_winner', group: 'C' },
-    awaySource: { type: 'third_place', group: 'TBD' },
-  },
-  // R32 slot 6: Group A runner-up vs Group B runner-up
-  {
-    slot: 6,
     homeSource: { type: 'group_runner_up', group: 'A' },
     awaySource: { type: 'group_runner_up', group: 'B' },
   },
-  // R32 slot 7: Group D winner vs 3rd-place qualifier
+  // R32 slot 4 (M75): Group F winner vs Group C runner-up
+  {
+    slot: 4,
+    homeSource: { type: 'group_winner', group: 'F' },
+    awaySource: { type: 'group_runner_up', group: 'C' },
+  },
+  // R32 slot 5 (M83): Group K runner-up vs Group L runner-up
+  {
+    slot: 5,
+    homeSource: { type: 'group_runner_up', group: 'K' },
+    awaySource: { type: 'group_runner_up', group: 'L' },
+  },
+  // R32 slot 6 (M84): Group H winner vs Group J runner-up
+  {
+    slot: 6,
+    homeSource: { type: 'group_winner', group: 'H' },
+    awaySource: { type: 'group_runner_up', group: 'J' },
+  },
+  // R32 slot 7 (M81): Group D winner vs 3rd-place qualifier
   {
     slot: 7,
     homeSource: { type: 'group_winner', group: 'D' },
     awaySource: { type: 'third_place', group: 'TBD' },
   },
-  // R32 slot 8: Group I winner vs Group H runner-up
+  // R32 slot 8 (M82): Group G winner vs 3rd-place qualifier
   {
     slot: 8,
-    homeSource: { type: 'group_winner', group: 'I' },
-    awaySource: { type: 'group_runner_up', group: 'H' },
-  },
-
-  // -----------------------------------------------------------------------
-  // RIGHT HALF OF BRACKET
-  // -----------------------------------------------------------------------
-
-  // -- Quarter 3 (feeds QF slot 27 via R16 slots 21, 22) --
-
-  // R32 slot 9: Group E winner vs 3rd-place qualifier
-  {
-    slot: 9,
-    homeSource: { type: 'group_winner', group: 'E' },
-    awaySource: { type: 'third_place', group: 'TBD' },
-  },
-  // R32 slot 10: Group G runner-up vs Group J runner-up
-  {
-    slot: 10,
-    homeSource: { type: 'group_runner_up', group: 'G' },
-    awaySource: { type: 'group_runner_up', group: 'J' },
-  },
-  // R32 slot 11: Group F winner vs 3rd-place qualifier
-  {
-    slot: 11,
-    homeSource: { type: 'group_winner', group: 'F' },
-    awaySource: { type: 'third_place', group: 'TBD' },
-  },
-  // R32 slot 12: Group I runner-up vs Group L runner-up
-  {
-    slot: 12,
-    homeSource: { type: 'group_runner_up', group: 'I' },
-    awaySource: { type: 'group_runner_up', group: 'L' },
-  },
-
-  // -- Quarter 4 (feeds QF slot 28 via R16 slots 23, 24) --
-
-  // R32 slot 13: Group G winner vs 3rd-place qualifier
-  {
-    slot: 13,
     homeSource: { type: 'group_winner', group: 'G' },
     awaySource: { type: 'third_place', group: 'TBD' },
   },
-  // R32 slot 14: Group J winner vs Group K runner-up
+
+  // -----------------------------------------------------------------------
+  // RIGHT HALF OF BRACKET (slots 9-16 -> R16 21-24 -> QF 27-28 -> SF 30)
+  // -----------------------------------------------------------------------
+
+  // R32 slot 9 (M76): Group C winner vs Group F runner-up
   {
-    slot: 14,
-    homeSource: { type: 'group_winner', group: 'J' },
-    awaySource: { type: 'group_runner_up', group: 'K' },
+    slot: 9,
+    homeSource: { type: 'group_winner', group: 'C' },
+    awaySource: { type: 'group_runner_up', group: 'F' },
   },
-  // R32 slot 15: Group H winner vs 3rd-place qualifier
+  // R32 slot 10 (M78): Group E runner-up vs Group I runner-up
   {
-    slot: 15,
-    homeSource: { type: 'group_winner', group: 'H' },
+    slot: 10,
+    homeSource: { type: 'group_runner_up', group: 'E' },
+    awaySource: { type: 'group_runner_up', group: 'I' },
+  },
+  // R32 slot 11 (M79): Group A winner vs 3rd-place qualifier
+  {
+    slot: 11,
+    homeSource: { type: 'group_winner', group: 'A' },
     awaySource: { type: 'third_place', group: 'TBD' },
   },
-  // R32 slot 16: Group K winner vs Group L winner -- wait, that's 2 winners
-  // We have 12 winners total. 8 are in odd slots. 4 remain: I, J, K, L.
-  // I is in slot 8, J is in slot 14. K and L need even slots.
+  // R32 slot 12 (M80): Group L winner vs 3rd-place qualifier
+  {
+    slot: 12,
+    homeSource: { type: 'group_winner', group: 'L' },
+    awaySource: { type: 'third_place', group: 'TBD' },
+  },
+  // R32 slot 13 (M86): Group J winner vs Group H runner-up
+  {
+    slot: 13,
+    homeSource: { type: 'group_winner', group: 'J' },
+    awaySource: { type: 'group_runner_up', group: 'H' },
+  },
+  // R32 slot 14 (M88): Group D runner-up vs Group G runner-up
+  {
+    slot: 14,
+    homeSource: { type: 'group_runner_up', group: 'D' },
+    awaySource: { type: 'group_runner_up', group: 'G' },
+  },
+  // R32 slot 15 (M85): Group B winner vs 3rd-place qualifier
+  {
+    slot: 15,
+    homeSource: { type: 'group_winner', group: 'B' },
+    awaySource: { type: 'third_place', group: 'TBD' },
+  },
+  // R32 slot 16 (M87): Group K winner vs 3rd-place qualifier
   {
     slot: 16,
     homeSource: { type: 'group_winner', group: 'K' },
-    awaySource: { type: 'group_winner', group: 'L' },
+    awaySource: { type: 'third_place', group: 'TBD' },
   },
 ];
 
