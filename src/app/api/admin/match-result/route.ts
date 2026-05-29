@@ -4,6 +4,7 @@ import { matches } from "@/db/schema/matches";
 import { groupStandings } from "@/db/schema/teams";
 import { eq, and, asc } from "drizzle-orm";
 import { getUser } from "@/lib/supabase/auth";
+import { recalculateAllScores } from "@/lib/scoring/recalculate";
 
 export async function POST(request: Request) {
   const user = await getUser();
@@ -57,6 +58,8 @@ export async function POST(request: Request) {
     );
     await recalculateBestThirds();
   }
+
+  await recalculateAllScores();
 
   return NextResponse.json({ success: true });
 }

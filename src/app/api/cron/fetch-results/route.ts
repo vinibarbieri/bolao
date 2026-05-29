@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { matches } from "@/db/schema/matches";
 import { eq, and } from "drizzle-orm";
+import { recalculateAllScores } from "@/lib/scoring/recalculate";
 
 const FOOTBALL_DATA_API = "https://api.football-data.org/v4";
 
@@ -92,6 +93,10 @@ export async function GET(request: Request) {
         .where(eq(matches.id, localMatch[0].id));
 
       updated++;
+    }
+
+    if (updated > 0) {
+      await recalculateAllScores();
     }
 
     return NextResponse.json({ success: true, updatedMatches: updated });
