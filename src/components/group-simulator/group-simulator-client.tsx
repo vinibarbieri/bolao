@@ -115,10 +115,6 @@ export function GroupSimulatorClient({
     }
   }, [store]);
 
-  if (!store.isInitialized) {
-    return <div className="text-muted-foreground">Loading...</div>;
-  }
-
   return (
     <div className="space-y-6">
       {/* Group selector tabs */}
@@ -167,6 +163,10 @@ export function GroupSimulatorClient({
         )}
       </div>
 
+      {!store.isInitialized ? (
+        <div className="text-muted-foreground">Loading...</div>
+      ) : (
+      <>
       {/* View toggle */}
       <Tabs
         value={store.activeView}
@@ -273,6 +273,8 @@ export function GroupSimulatorClient({
           <span className="text-sm text-muted-foreground">All changes saved</span>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }
