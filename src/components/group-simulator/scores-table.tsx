@@ -30,6 +30,80 @@ interface ScoresTableProps {
     homeScore: number,
     awayScore: number
   ) => void;
+  standingsWrapperClassName?: string;
+}
+
+export function ComputedStandingsCard({
+  standings,
+  className,
+}: {
+  standings: ComputedStanding[];
+  className?: string;
+}) {
+  const t = useTranslations("Groups");
+  if (standings.length === 0) return null;
+  return (
+    <Card className={className}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm text-muted-foreground">
+          {t("computedStandings")}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-8">#</TableHead>
+              <TableHead>Team</TableHead>
+              <TableHead className="text-center">P</TableHead>
+              <TableHead className="text-center">W</TableHead>
+              <TableHead className="text-center">D</TableHead>
+              <TableHead className="text-center">L</TableHead>
+              <TableHead className="text-center">GD</TableHead>
+              <TableHead className="text-center">Pts</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {standings.map((row, i) => (
+              <TableRow
+                key={row.teamId}
+                className={cn(
+                  i < 2 && "bg-qualified/8",
+                  i === 2 && "bg-third/10",
+                )}
+              >
+                <TableCell className="font-medium">
+                  <span
+                    className={cn(
+                      "inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold",
+                      i < 2
+                        ? "bg-qualified/20 text-qualified-foreground"
+                        : i === 2
+                          ? "bg-third/25 text-third-foreground"
+                          : "text-muted-foreground",
+                    )}
+                  >
+                    {i + 1}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <TeamBadge teamId={row.teamId} name={row.teamName} size="sm" />
+                </TableCell>
+                <TableCell className="text-center">{row.played}</TableCell>
+                <TableCell className="text-center">{row.won}</TableCell>
+                <TableCell className="text-center">{row.drawn}</TableCell>
+                <TableCell className="text-center">{row.lost}</TableCell>
+                <TableCell className="text-center">{row.gd}</TableCell>
+                <TableCell className="text-center font-bold">
+                  {row.points}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
 }
 
 export function ScoresTable({
@@ -38,6 +112,7 @@ export function ScoresTable({
   standings,
   placements,
   onScoreChange,
+  standingsWrapperClassName,
 }: ScoresTableProps) {
   const t = useTranslations("Groups");
   const teamNames = new Map(placements.map((t) => [t.teamId, t.teamName]));
@@ -119,68 +194,10 @@ export function ScoresTable({
           </CardContent>
         </Card>
 
-        {standings.length > 0 && (
-          <Card className="@[900px]:shrink-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm text-muted-foreground">
-                {t("computedStandings")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-8">#</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead className="text-center">P</TableHead>
-                    <TableHead className="text-center">W</TableHead>
-                    <TableHead className="text-center">D</TableHead>
-                    <TableHead className="text-center">L</TableHead>
-                    <TableHead className="text-center">GD</TableHead>
-                    <TableHead className="text-center">Pts</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {standings.map((row, i) => (
-                    <TableRow
-                      key={row.teamId}
-                      className={cn(
-                        i < 2 && "bg-qualified/8",
-                        i === 2 && "bg-third/10",
-                      )}
-                    >
-                      <TableCell className="font-medium">
-                        <span
-                          className={cn(
-                            "inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold",
-                            i < 2
-                              ? "bg-qualified/20 text-qualified-foreground"
-                              : i === 2
-                                ? "bg-third/25 text-third-foreground"
-                                : "text-muted-foreground",
-                          )}
-                        >
-                          {i + 1}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <TeamBadge teamId={row.teamId} name={row.teamName} size="sm" />
-                      </TableCell>
-                      <TableCell className="text-center">{row.played}</TableCell>
-                      <TableCell className="text-center">{row.won}</TableCell>
-                      <TableCell className="text-center">{row.drawn}</TableCell>
-                      <TableCell className="text-center">{row.lost}</TableCell>
-                      <TableCell className="text-center">{row.gd}</TableCell>
-                      <TableCell className="text-center font-bold">
-                        {row.points}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
+        <ComputedStandingsCard
+          standings={standings}
+          className={cn("@[900px]:shrink-0", standingsWrapperClassName)}
+        />
       </div>
     </div>
   );

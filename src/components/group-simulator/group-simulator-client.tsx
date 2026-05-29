@@ -7,7 +7,7 @@ import {
   GROUP_LETTERS,
 } from "@/lib/stores/group-simulator-store";
 import { PlacementsTable } from "./placements-table";
-import { ScoresTable } from "./scores-table";
+import { ScoresTable, ComputedStandingsCard } from "./scores-table";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { saveGroupPredictions, saveScorePredictions } from "@/app/(app)/actions";
@@ -228,6 +228,10 @@ export function GroupSimulatorClient({
                 }
                 teamPointsMap={teamPointsMap}
               />
+              <ComputedStandingsCard
+                standings={store.computedStandings[store.activeGroup]}
+                className="mt-4 hidden lg:block"
+              />
             </div>
             <div>
               <h3 className="mb-2 text-sm font-medium text-muted-foreground">
@@ -241,6 +245,7 @@ export function GroupSimulatorClient({
                 onScoreChange={(matchId, home, away) =>
                   store.setScore(store.activeGroup, matchId, home, away)
                 }
+                standingsWrapperClassName="lg:hidden"
               />
               <Button
                 variant="secondary"
