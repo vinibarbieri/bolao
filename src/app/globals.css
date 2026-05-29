@@ -188,6 +188,13 @@
   html {
     @apply font-sans;
   }
+  /* Tailwind v4 preflight no longer sets cursor:pointer on buttons. Restore it
+     for all enabled buttons / button-role elements (disabled ones keep the
+     default arrow). */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
   /* Display font for page-level headings. Oswald is condensed, so keep
      tracking near-normal and let weight carry the emphasis. */
   h1,
