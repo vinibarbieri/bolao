@@ -7,6 +7,7 @@ const POINTS: Record<string, number> = {
   r16: 3,
   qf: 5,
   sf: 8,
+  third: 5,
   final: 15,
   champion: 30,
 };

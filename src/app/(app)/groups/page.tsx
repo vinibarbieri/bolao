@@ -85,7 +85,6 @@ export default async function GroupsPage() {
         items={[
           { label: "Exact position", points: 3 },
           { label: "Top-2 advance", points: 2 },
-          { label: "Best 3rd qualifies", points: 2 },
         ]}
       />
 

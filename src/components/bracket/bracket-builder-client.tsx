@@ -256,7 +256,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
             {/* 3rd place (below the final) */}
             <div className="w-full">
-              <RoundHeading className="text-center">
+              <RoundHeading className="text-center" scoringPoints={5}>
                 {ROUND_LABELS.third}
               </RoundHeading>
               {renderSlotCard(31)}
