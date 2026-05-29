@@ -5,9 +5,9 @@ import { userScores } from "@/db/schema/scores";
 import { eq } from "drizzle-orm";
 
 const POINTS = {
-  EXACT_POSITION: 3, // Team in exact predicted position
-  CORRECT_ADVANCE: 2, // Team correctly predicted to advance (top 2)
-  CORRECT_THIRD_QUALIFIES: 4, // Correctly predicted 3rd-place team as one of 8 qualifiers
+  EXACT_POSITION: 3,
+  CORRECT_ADVANCE: 2,
+  CORRECT_THIRD_QUALIFIES: 2,
 };
 
 export async function calculateGroupScores(userId: string) {

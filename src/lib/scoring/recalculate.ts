@@ -8,7 +8,7 @@ import { calculateGroupScores } from "./group-scoring";
 import { calculateKnockoutScores } from "./knockout-scoring";
 import { calculateAwardScores, calculateTrioScores } from "./award-scoring";
 
-export async function recalculateAllScores(topScorerIds: string[] = []) {
+export async function recalculateAllScores() {
   const allUsers = await db.select().from(profiles);
 
   await db.transaction(async (tx) => {
@@ -21,7 +21,7 @@ export async function recalculateAllScores(topScorerIds: string[] = []) {
       const groupScores = await calculateGroupScores(user.id);
       const knockoutScores = await calculateKnockoutScores(user.id);
       const awardScores = await calculateAwardScores(user.id);
-      const trioScores = await calculateTrioScores(user.id, topScorerIds);
+      const trioScores = await calculateTrioScores(user.id);
 
       const allScores = [
         ...groupScores,

@@ -4,13 +4,11 @@ import { matches } from "@/db/schema/matches";
 import { eq, and, ne } from "drizzle-orm";
 
 const POINTS: Record<string, number> = {
-  r32: 2,
   r16: 3,
   qf: 5,
   sf: 8,
-  third: 5,
-  final: 10,
-  champion: 15,
+  final: 15,
+  champion: 30,
 };
 
 export async function calculateKnockoutScores(userId: string) {
@@ -88,7 +86,8 @@ function getNextRound(currentRound: string): string | null {
     r32: "r16",
     r16: "qf",
     qf: "sf",
-    sf: "final", // or "third" for losers
+    sf: "final",
+    final: "champion",
   };
   return progression[currentRound] ?? null;
 }

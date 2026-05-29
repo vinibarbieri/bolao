@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { matchId, homeScore, awayScore } = await request.json();
+  const { matchId, homeScore, awayScore, motmPlayerId } = await request.json();
 
   if (typeof homeScore !== "number" || typeof awayScore !== "number") {
     return NextResponse.json({ error: "Invalid scores" }, { status: 400 });
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       homeScore,
       awayScore,
       winnerTeamId,
+      motmPlayerId: motmPlayerId ?? null,
       status: "finished",
     })
     .where(eq(matches.id, matchId));

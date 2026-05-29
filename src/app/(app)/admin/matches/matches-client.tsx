@@ -71,6 +71,7 @@ interface Match {
   awayTeamId: string | null;
   homeScore: number | null;
   awayScore: number | null;
+  motmPlayerId: string | null;
   status: string;
   kickoffAt: Date;
 }
@@ -86,6 +87,13 @@ interface Team {
   name: string;
 }
 
+interface EditState {
+  matchId: string;
+  homeScore: string;
+  awayScore: string;
+  motmPlayerId: string;
+}
+
 export function MatchAdminClient({
   matches,
   players,
@@ -95,37 +103,128 @@ export function MatchAdminClient({
   players: Player[];
   teams: Team[];
 }) {
-  const [editingMatch, setEditingMatch] = useState<string | null>(null);
-  const [homeScore, setHomeScore] = useState("");
-  const [awayScore, setAwayScore] = useState("");
+  const [editing, setEditing] = useState<EditState | null>(null);
 
   const teamNameMap = new Map(teams.map((t) => [t.id, t.name]));
+  const playerNameMap = new Map(players.map((p) => [p.id, p.name]));
 
-  const handleSubmitResult = async (matchId: string) => {
+  const startEdit = (match: Match) => {
+    setEditing({
+      matchId: match.id,
+      homeScore: match.homeScore?.toString() ?? "",
+      awayScore: match.awayScore?.toString() ?? "",
+      motmPlayerId: match.motmPlayerId ?? "",
+    });
+  };
+
+  const handleSubmit = async (match: Match) => {
+    if (!editing) return;
+    const home = parseInt(editing.homeScore);
+    const away = parseInt(editing.awayScore);
+    if (isNaN(home) || isNaN(away)) {
+      toast.error("Enter valid scores before saving.");
+      return;
+    }
     try {
       const res = await fetch("/api/admin/match-result", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          matchId,
-          homeScore: parseInt(homeScore),
-          awayScore: parseInt(awayScore),
+          matchId: match.id,
+          homeScore: home,
+          awayScore: away,
+          motmPlayerId: editing.motmPlayerId || null,
         }),
       });
-
       if (!res.ok) throw new Error("Failed to update match");
       toast.success("Match result saved!");
-      setEditingMatch(null);
+      setEditing(null);
       window.location.reload();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to save"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to save");
     }
   };
 
   const groupMatches = matches.filter((m) => m.stage === "group");
   const knockoutMatches = matches.filter((m) => m.stage !== "group");
+
+  const renderEditRow = (match: Match) => {
+    const isEditing = editing?.matchId === match.id;
+    const matchPlayers = players.filter(
+      (p) => p.teamId === match.homeTeamId || p.teamId === match.awayTeamId,
+    );
+
+    return isEditing ? (
+      <TableRow key={match.id} className="bg-muted/30">
+        <TableCell colSpan={7}>
+          <div className="flex flex-wrap items-end gap-4 py-1">
+            <div className="flex items-center gap-2">
+              <TeamCell
+                teamId={match.homeTeamId}
+                name={teamNameMap.get(match.homeTeamId ?? "")}
+              />
+              <Input
+                type="number"
+                className="w-14 text-center"
+                value={editing.homeScore}
+                onChange={(e) =>
+                  setEditing((s) => s && { ...s, homeScore: e.target.value })
+                }
+                min={0}
+              />
+              <span className="text-muted-foreground">–</span>
+              <Input
+                type="number"
+                className="w-14 text-center"
+                value={editing.awayScore}
+                onChange={(e) =>
+                  setEditing((s) => s && { ...s, awayScore: e.target.value })
+                }
+                min={0}
+              />
+              <TeamCell
+                teamId={match.awayTeamId}
+                name={teamNameMap.get(match.awayTeamId ?? "")}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Label className="shrink-0 text-xs">MOTM</Label>
+              <select
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                value={editing.motmPlayerId || ""}
+                onChange={(e) =>
+                  setEditing((s) => s && { ...s, motmPlayerId: e.target.value })
+                }
+              >
+                <option value="">— none —</option>
+                {matchPlayers.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-1">
+              <Button size="sm" className="gap-1" onClick={() => handleSubmit(match)}>
+                <Check className="h-3.5 w-3.5" />
+                Save
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="Cancel"
+                onClick={() => setEditing(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </TableCell>
+      </TableRow>
+    ) : null;
+  };
 
   return (
     <div className="space-y-6">
@@ -142,94 +241,58 @@ export function MatchAdminClient({
                 <TableHead>Home</TableHead>
                 <TableHead className="text-center">Score</TableHead>
                 <TableHead>Away</TableHead>
+                <TableHead>MOTM</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {groupMatches.map((match) => (
-                <TableRow key={match.id}>
-                  <TableCell>{match.matchNumber}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{match.groupLetter}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <TeamCell
-                      teamId={match.homeTeamId}
-                      name={teamNameMap.get(match.homeTeamId ?? "")}
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {editingMatch === match.id ? (
-                      <div className="flex items-center justify-center gap-1">
-                        <Input
-                          type="number"
-                          className="w-14 text-center"
-                          value={homeScore}
-                          onChange={(e) => setHomeScore(e.target.value)}
-                          min={0}
-                        />
-                        <span>-</span>
-                        <Input
-                          type="number"
-                          className="w-14 text-center"
-                          value={awayScore}
-                          onChange={(e) => setAwayScore(e.target.value)}
-                          min={0}
-                        />
-                      </div>
-                    ) : match.homeScore !== null ? (
-                      `${match.homeScore} - ${match.awayScore}`
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <TeamCell
-                      teamId={match.awayTeamId}
-                      name={teamNameMap.get(match.awayTeamId ?? "")}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={match.status} />
-                  </TableCell>
-                  <TableCell>
-                    {editingMatch === match.id ? (
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => handleSubmitResult(match.id)}
-                        >
-                          <Check className="h-3.5 w-3.5" />
-                          Save
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          aria-label="Cancel"
-                          onClick={() => setEditingMatch(null)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
+                <>
+                  <TableRow key={match.id}>
+                    <TableCell>{match.matchNumber}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{match.groupLetter}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <TeamCell
+                        teamId={match.homeTeamId}
+                        name={teamNameMap.get(match.homeTeamId ?? "")}
+                      />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {match.homeScore !== null
+                        ? `${match.homeScore} – ${match.awayScore}`
+                        : "–"}
+                    </TableCell>
+                    <TableCell>
+                      <TeamCell
+                        teamId={match.awayTeamId}
+                        name={teamNameMap.get(match.awayTeamId ?? "")}
+                      />
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {match.motmPlayerId
+                        ? playerNameMap.get(match.motmPlayerId) ?? "—"
+                        : "—"}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={match.status} />
+                    </TableCell>
+                    <TableCell>
                       <Button
                         size="sm"
                         variant="outline"
                         className="gap-1"
-                        onClick={() => {
-                          setEditingMatch(match.id);
-                          setHomeScore(match.homeScore?.toString() ?? "");
-                          setAwayScore(match.awayScore?.toString() ?? "");
-                        }}
+                        onClick={() => startEdit(match)}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                         Edit
                       </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
+                    </TableCell>
+                  </TableRow>
+                  {renderEditRow(match)}
+                </>
               ))}
             </TableBody>
           </Table>
@@ -250,55 +313,60 @@ export function MatchAdminClient({
                   <TableHead>Home</TableHead>
                   <TableHead className="text-center">Score</TableHead>
                   <TableHead>Away</TableHead>
+                  <TableHead>MOTM</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {knockoutMatches.map((match) => (
-                  <TableRow key={match.id}>
-                    <TableCell>{match.matchNumber}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="uppercase">
-                        {match.stage}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <TeamCell
-                        teamId={match.homeTeamId}
-                        name={teamNameMap.get(match.homeTeamId ?? "")}
-                      />
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {match.homeScore !== null
-                        ? `${match.homeScore} - ${match.awayScore}`
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <TeamCell
-                        teamId={match.awayTeamId}
-                        name={teamNameMap.get(match.awayTeamId ?? "")}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={match.status} />
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-1"
-                        onClick={() => {
-                          setEditingMatch(match.id);
-                          setHomeScore(match.homeScore?.toString() ?? "");
-                          setAwayScore(match.awayScore?.toString() ?? "");
-                        }}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                        Edit
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  <>
+                    <TableRow key={match.id}>
+                      <TableCell>{match.matchNumber}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="uppercase">
+                          {match.stage}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <TeamCell
+                          teamId={match.homeTeamId}
+                          name={teamNameMap.get(match.homeTeamId ?? "")}
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {match.homeScore !== null
+                          ? `${match.homeScore} – ${match.awayScore}`
+                          : "–"}
+                      </TableCell>
+                      <TableCell>
+                        <TeamCell
+                          teamId={match.awayTeamId}
+                          name={teamNameMap.get(match.awayTeamId ?? "")}
+                        />
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {match.motmPlayerId
+                          ? playerNameMap.get(match.motmPlayerId) ?? "—"
+                          : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={match.status} />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1"
+                          onClick={() => startEdit(match)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {renderEditRow(match)}
+                  </>
                 ))}
               </TableBody>
             </Table>

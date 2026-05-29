@@ -1,18 +1,13 @@
 import { db } from "@/db";
 import { awardPredictions, actualAwards, goldenTrio } from "@/db/schema/predictions";
-import { players } from "@/db/schema/matches";
-import { eq } from "drizzle-orm";
+import { matches } from "@/db/schema/matches";
+import { eq, and, isNotNull } from "drizzle-orm";
 
 const AWARD_POINTS: Record<string, number> = {
   golden_boot: 10,
-  golden_glove: 8,
-  top_assist: 8,
+  golden_glove: 5,
+  top_assist: 5,
   goal_of_tournament: 5,
-};
-
-const TRIO_POINTS = {
-  EXACT_MATCH: 10, // Player is in the top 3 scorers
-  IN_TOP_5: 5, // Player is in the top 5 scorers (but not top 3)
 };
 
 export async function calculateAwardScores(userId: string) {
@@ -52,14 +47,25 @@ export async function calculateAwardScores(userId: string) {
   return scoreRows;
 }
 
-export async function calculateTrioScores(
-  userId: string,
-  topScorerIds: string[] // ordered list of top scorer player IDs
-) {
+export async function calculateTrioScores(userId: string) {
   const trio = await db
     .select()
     .from(goldenTrio)
     .where(eq(goldenTrio.userId, userId));
+
+  if (trio.length === 0) return [];
+
+  // Count MOTM wins per player from finished matches
+  const motmMatches = await db
+    .select({ motmPlayerId: matches.motmPlayerId })
+    .from(matches)
+    .where(and(eq(matches.status, "finished"), isNotNull(matches.motmPlayerId)));
+
+  const motmCounts = new Map<string, number>();
+  for (const m of motmMatches) {
+    if (!m.motmPlayerId) continue;
+    motmCounts.set(m.motmPlayerId, (motmCounts.get(m.motmPlayerId) ?? 0) + 1);
+  }
 
   const scoreRows: {
     userId: string;
@@ -69,25 +75,15 @@ export async function calculateTrioScores(
     description: string;
   }[] = [];
 
-  const top3 = new Set(topScorerIds.slice(0, 3));
-  const top5 = new Set(topScorerIds.slice(0, 5));
-
   for (const pick of trio) {
-    if (top3.has(pick.playerId)) {
+    const count = motmCounts.get(pick.playerId) ?? 0;
+    if (count > 0) {
       scoreRows.push({
         userId,
         category: "golden_trio",
         subDetail: `Slot ${pick.slot}`,
-        points: TRIO_POINTS.EXACT_MATCH,
-        description: `Golden Trio pick in top 3 scorers`,
-      });
-    } else if (top5.has(pick.playerId)) {
-      scoreRows.push({
-        userId,
-        category: "golden_trio",
-        subDetail: `Slot ${pick.slot}`,
-        points: TRIO_POINTS.IN_TOP_5,
-        description: `Golden Trio pick in top 5 scorers`,
+        points: count,
+        description: `Golden Trio pick won ${count} MOTM award${count > 1 ? "s" : ""}`,
       });
     }
   }
