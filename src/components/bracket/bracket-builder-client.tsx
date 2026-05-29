@@ -117,77 +117,56 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
     return <div className="text-muted-foreground">Loading bracket...</div>;
   }
 
-  // Build R32 matchup cards
-  const r32Cards = resolvedMatchups.map((matchup) => {
-    const hk = r32HomeKey(matchup.slot);
-    const ak = r32AwayKey(matchup.slot);
-    const homeTeam = store.picks[hk] ?? null;
-    const awayTeam = store.picks[ak] ?? null;
-    const winner = store.picks[matchup.slot] ?? null;
+  // Renders the matchup card for any slot (R32 or a later round), wired to the
+  // store. `mirror` flips the layout for the right half so flags face inward.
+  const renderSlotCard = (slotNumber: number, mirror = false) => {
+    const r32 = resolvedMatchups.find((m) => m.slot === slotNumber);
+    let s1: number;
+    let s2: number;
+
+    if (r32) {
+      s1 = r32HomeKey(slotNumber);
+      s2 = r32AwayKey(slotNumber);
+    } else {
+      const slot = BRACKET_STRUCTURE.find((s) => s.slotNumber === slotNumber)!;
+      if (slot.round === "third") {
+        // Third-place participants are the LOSERS of the two SFs: for each SF,
+        // the source slot whose team is NOT the SF winner.
+        const [sf1, sf2] = slot.sourceSlots!;
+        const sf1Struct = BRACKET_STRUCTURE.find((s) => s.slotNumber === sf1)!;
+        const sf2Struct = BRACKET_STRUCTURE.find((s) => s.slotNumber === sf2)!;
+        const [sf1Src1, sf1Src2] = sf1Struct.sourceSlots!;
+        const [sf2Src1, sf2Src2] = sf2Struct.sourceSlots!;
+        const sf1Winner = store.picks[sf1];
+        const sf2Winner = store.picks[sf2];
+        s1 = sf1Winner && store.picks[sf1Src1]?.teamId === sf1Winner.teamId ? sf1Src2 : sf1Src1;
+        s2 = sf2Winner && store.picks[sf2Src1]?.teamId === sf2Winner.teamId ? sf2Src2 : sf2Src1;
+      } else {
+        [s1, s2] = slot.sourceSlots!;
+      }
+    }
 
     return (
       <MatchupCard
-        key={matchup.slot}
-        targetSlot={matchup.slot}
-        team1={homeTeam}
-        team1Slot={hk}
-        team2={awayTeam}
-        team2Slot={ak}
-        winner={winner}
+        key={slotNumber}
+        targetSlot={slotNumber}
+        team1={store.picks[s1] ?? null}
+        team1Slot={s1}
+        team2={store.picks[s2] ?? null}
+        team2Slot={s2}
+        winner={store.picks[slotNumber] ?? null}
         onAdvance={handleAdvance}
+        mirror={mirror}
       />
     );
-  });
-
-  // Build R16+ cards from BRACKET_STRUCTURE
-  const laterRounds = ["r16", "qf", "sf", "final", "third"];
-  const roundCards: Record<string, React.ReactNode[]> = {};
-
-  for (const round of laterRounds) {
-    roundCards[round] = BRACKET_STRUCTURE
-      .filter((s) => s.round === round && s.sourceSlots)
-      .map((slot) => {
-        let s1: number, s2: number;
-
-        if (slot.round === "third") {
-          // Third-place match participants are the LOSERS of the two SFs.
-          // slot.sourceSlots = [29, 30] (the SF slots).
-          // For each SF, find which of its two source slots holds the loser
-          // (the team that is NOT the SF winner).
-          const [sf1, sf2] = slot.sourceSlots!;
-          const sf1Struct = BRACKET_STRUCTURE.find((s) => s.slotNumber === sf1)!;
-          const sf2Struct = BRACKET_STRUCTURE.find((s) => s.slotNumber === sf2)!;
-          const [sf1Src1, sf1Src2] = sf1Struct.sourceSlots!;
-          const [sf2Src1, sf2Src2] = sf2Struct.sourceSlots!;
-          const sf1Winner = store.picks[sf1];
-          const sf2Winner = store.picks[sf2];
-          // Loser slot = the source slot whose team is NOT the SF winner
-          s1 = sf1Winner && store.picks[sf1Src1]?.teamId === sf1Winner.teamId ? sf1Src2 : sf1Src1;
-          s2 = sf2Winner && store.picks[sf2Src1]?.teamId === sf2Winner.teamId ? sf2Src2 : sf2Src1;
-        } else {
-          [s1, s2] = slot.sourceSlots!;
-        }
-
-        const team1 = store.picks[s1] ?? null;
-        const team2 = store.picks[s2] ?? null;
-        const winner = store.picks[slot.slotNumber] ?? null;
-
-        return (
-          <MatchupCard
-            key={slot.slotNumber}
-            targetSlot={slot.slotNumber}
-            team1={team1}
-            team1Slot={s1}
-            team2={team2}
-            team2Slot={s2}
-            winner={winner}
-            onAdvance={handleAdvance}
-          />
-        );
-      });
-  }
+  };
 
   const champion = store.picks[32];
+
+  // Slot groupings per half. Left feeds SF 29, right feeds SF 30; both meet
+  // at the Final (32). Teams in the same half can only meet by the semi-final.
+  const LEFT = { r32: [1, 2, 3, 4, 5, 6, 7, 8], r16: [17, 18, 19, 20], qf: [25, 26], sf: [29] };
+  const RIGHT = { sf: [30], qf: [27, 28], r16: [21, 22, 23, 24], r32: [9, 10, 11, 12, 13, 14, 15, 16] };
 
   return (
     <div className="space-y-6">
@@ -218,51 +197,97 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
         )}
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        <BracketColumn label={ROUND_LABELS.r32}>{r32Cards}</BracketColumn>
+      <div className="overflow-x-auto pb-4">
+        <div className="mx-auto flex w-max items-stretch gap-3 sm:gap-4">
+          {/* LEFT HALF */}
+          <BracketColumn label={ROUND_LABELS.r32}>
+            {LEFT.r32.map((s) => renderSlotCard(s))}
+          </BracketColumn>
+          <BracketColumn label={ROUND_LABELS.r16}>
+            {LEFT.r16.map((s) => renderSlotCard(s))}
+          </BracketColumn>
+          <BracketColumn label={ROUND_LABELS.qf}>
+            {LEFT.qf.map((s) => renderSlotCard(s))}
+          </BracketColumn>
+          <BracketColumn label={ROUND_LABELS.sf}>
+            {LEFT.sf.map((s) => renderSlotCard(s))}
+          </BracketColumn>
 
-        {laterRounds
-          .filter((r) => r !== "third")
-          .map((round) => (
-            <BracketColumn key={round} label={ROUND_LABELS[round]}>
-              {roundCards[round]}
-            </BracketColumn>
-          ))}
-      </div>
-
-      {/* 3rd place match */}
-      {roundCards.third && roundCards.third.length > 0 && (
-        <div>
-          <RoundHeading>{ROUND_LABELS.third}</RoundHeading>
-          <div className="max-w-[240px]">{roundCards.third}</div>
-        </div>
-      )}
-
-      {champion && (
-        <Card className="overflow-hidden border-gold/60 bg-gold/10">
-          <CardContent className="flex items-center gap-4 p-6">
-            <span className="bg-brand-gradient flex h-14 w-14 items-center justify-center rounded-2xl text-brand-foreground shadow-md">
-              <Trophy className="h-7 w-7" />
-            </span>
-            <div className="flex items-center gap-3">
-              <TeamFlag teamId={champion.teamId} size="lg" />
-              <div>
-                <p className="text-xl font-extrabold">{champion.teamName}</p>
-                <p className="text-sm text-muted-foreground">
-                  Your predicted champion
-                </p>
-              </div>
+          {/* CENTER: champion on top, then the Final, then 3rd place */}
+          <div className="flex min-w-[220px] flex-col items-center justify-center gap-4">
+            {/* Champion (above the final) */}
+            <div className="flex flex-col items-center gap-2">
+              <RoundHeading className="mb-0 text-gold-foreground">
+                Champion
+              </RoundHeading>
+              <span className="bg-brand-gradient flex h-14 w-14 items-center justify-center rounded-2xl text-brand-foreground shadow-md">
+                <Trophy className="h-7 w-7" />
+              </span>
+              {champion ? (
+                <div className="flex max-w-full items-center gap-2 rounded-lg border border-gold/60 bg-gold/10 px-3 py-2">
+                  <Crown className="h-4 w-4 shrink-0 text-gold" />
+                  <TeamFlag teamId={champion.teamId} size="md" />
+                  <span className="truncate text-sm font-bold">
+                    {champion.teamName}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  Pick the winner
+                </span>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
+
+            {/* Final */}
+            <div className="w-full">
+              <RoundHeading className="text-center">
+                {ROUND_LABELS.final}
+              </RoundHeading>
+              {renderSlotCard(32)}
+            </div>
+
+            {/* 3rd place (below the final) */}
+            <div className="w-full">
+              <RoundHeading className="text-center">
+                {ROUND_LABELS.third}
+              </RoundHeading>
+              {renderSlotCard(31)}
+            </div>
+          </div>
+
+          {/* RIGHT HALF (mirrored) */}
+          <BracketColumn label={ROUND_LABELS.sf} align="right">
+            {RIGHT.sf.map((s) => renderSlotCard(s, true))}
+          </BracketColumn>
+          <BracketColumn label={ROUND_LABELS.qf} align="right">
+            {RIGHT.qf.map((s) => renderSlotCard(s, true))}
+          </BracketColumn>
+          <BracketColumn label={ROUND_LABELS.r16} align="right">
+            {RIGHT.r16.map((s) => renderSlotCard(s, true))}
+          </BracketColumn>
+          <BracketColumn label={ROUND_LABELS.r32} align="right">
+            {RIGHT.r32.map((s) => renderSlotCard(s, true))}
+          </BracketColumn>
+        </div>
+      </div>
     </div>
   );
 }
 
-function RoundHeading({ children }: { children: React.ReactNode }) {
+function RoundHeading({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+    <h3
+      className={cn(
+        "mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground",
+        className,
+      )}
+    >
       {children}
     </h3>
   );
@@ -271,14 +296,23 @@ function RoundHeading({ children }: { children: React.ReactNode }) {
 function BracketColumn({
   label,
   children,
+  align = "left",
 }: {
   label: string;
   children: React.ReactNode;
+  align?: "left" | "right";
 }) {
   return (
-    <div className="min-w-[240px] flex-shrink-0">
-      <RoundHeading>{label}</RoundHeading>
-      <div className="flex flex-col justify-around gap-3 h-full">{children}</div>
+    <div className="flex w-[180px] flex-shrink-0 flex-col sm:w-[200px]">
+      <h3
+        className={cn(
+          "mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground",
+          align === "right" && "text-right",
+        )}
+      >
+        {label}
+      </h3>
+      <div className="flex h-full flex-col justify-around gap-3">{children}</div>
     </div>
   );
 }
@@ -291,6 +325,7 @@ function MatchupCard({
   team2Slot,
   winner,
   onAdvance,
+  mirror = false,
 }: {
   targetSlot: number;
   team1: BracketTeam | null;
@@ -299,6 +334,7 @@ function MatchupCard({
   team2Slot: number;
   winner: BracketTeam | null;
   onAdvance: (fromSlot: number, toSlot: number) => void;
+  mirror?: boolean;
 }) {
   return (
     <Card className="overflow-hidden p-0 shadow-sm transition-shadow hover:shadow-md">
@@ -307,11 +343,13 @@ function MatchupCard({
           team={team1}
           isWinner={!!winner && winner.teamId === team1?.teamId}
           onClick={() => team1 && onAdvance(team1Slot, targetSlot)}
+          mirror={mirror}
         />
         <TeamSlotButton
           team={team2}
           isWinner={!!winner && winner.teamId === team2?.teamId}
           onClick={() => team2 && onAdvance(team2Slot, targetSlot)}
+          mirror={mirror}
         />
       </div>
     </Card>
@@ -322,15 +360,18 @@ function TeamSlotButton({
   team,
   isWinner,
   onClick,
+  mirror = false,
 }: {
   team: BracketTeam | null;
   isWinner: boolean;
   onClick: () => void;
+  mirror?: boolean;
 }) {
   return (
     <button
       className={cn(
-        "flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed",
+        "flex w-full items-center gap-2 px-3 py-2.5 transition-colors disabled:cursor-not-allowed",
+        mirror ? "flex-row-reverse text-right" : "text-left",
         isWinner
           ? "bg-qualified/12 font-semibold"
           : team

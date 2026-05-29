@@ -86,11 +86,11 @@ Every emoji was replaced with a `lucide-react` icon; teams now show flags; tourn
 - Themed "complete groups first" warning (`AlertTriangle` + amber).
 
 ### Bracket — `src/components/bracket/bracket-builder-client.tsx`
-- Sticky toolbar: `Save` / `Reset` (`RotateCcw`) + unsaved indicator.
-- Round columns with uppercase headings.
-- **Matchup cards**: flag per team, hover affordance, winner highlighted with a gold **`Crown`**.
-- **Champion** card: gradient trophy chip + flag + team name (gold accent).
-- Themed "select 8 third-place teams first" warning.
+- **Classic two-sided layout**: the left half (R32 slots 1–8 → R16 → QF → SF 29) flows inward to a centered **Final**, and the right half (R32 9–16 → R16 → QF → SF 30) mirrors it. Each side holds exactly the teams that can only meet by the semi-final.
+- Right-half matchup cards are **mirrored** (flags face inward) via a `mirror` prop; columns use `justify-around` so matches line up toward their merge point.
+- A single `renderSlotCard(slot, mirror)` helper drives every round (R32 from resolved matchups, later rounds + 3rd-place losers from `BRACKET_STRUCTURE`).
+- Center column: gradient trophy chip, the Final card, and a compact gold champion chip with flag.
+- Sticky toolbar (`Save` / `Reset` + unsaved indicator); winners marked with a gold **`Crown`**; the whole board scrolls horizontally on small screens; themed "select 8 third-place teams first" warning.
 
 ---
 
