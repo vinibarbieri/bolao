@@ -10,6 +10,7 @@ import { TeamFlag } from "@/components/team-badge";
 import { cn } from "@/lib/utils";
 import { Trophy, Crown, Save, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   r32Teams: { teamId: string; teamName: string; source: string }[];
@@ -26,6 +27,15 @@ const ROUND_LABELS: Record<string, string> = {
   sf: "Semi-Finals",
   final: "Final",
   third: "3rd Place",
+};
+
+const ROUND_POINT_TOOLTIPS: Record<string, string> = {
+  r16: "points for each correct team advancing to the Round of 16",
+  qf: "points for each correct team advancing to the Quarter-Finals",
+  sf: "points for each correct team advancing to the Semi-Finals",
+  final: "points for each correct team advancing to the Final",
+  third: "points for correctly predicting the 3rd place match winner",
+  champion: "points for correctly predicting the tournament champion",
 };
 
 // For R32, each slot is a match with home/away.
@@ -212,13 +222,13 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           <BracketColumn label={ROUND_LABELS.r32}>
             {LEFT.r32.map((s) => renderSlotCard(s))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.r16} scoringPoints={knockoutPointsConfig.r16}>
+          <BracketColumn label={ROUND_LABELS.r16} scoringPoints={knockoutPointsConfig.r16} roundKey="r16">
             {LEFT.r16.map((s) => renderSlotCard(s))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.qf} scoringPoints={knockoutPointsConfig.qf}>
+          <BracketColumn label={ROUND_LABELS.qf} scoringPoints={knockoutPointsConfig.qf} roundKey="qf">
             {LEFT.qf.map((s) => renderSlotCard(s))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.sf} scoringPoints={knockoutPointsConfig.sf}>
+          <BracketColumn label={ROUND_LABELS.sf} scoringPoints={knockoutPointsConfig.sf} roundKey="sf">
             {LEFT.sf.map((s) => renderSlotCard(s))}
           </BracketColumn>
 
@@ -226,7 +236,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           <div className="flex min-w-[220px] flex-col items-center justify-center gap-4">
             {/* Champion (above the final) */}
             <div className="flex flex-col items-center gap-2">
-              <RoundHeading className="mb-0 text-gold-foreground" scoringPoints={knockoutPointsConfig.champion}>
+              <RoundHeading className="mb-0 text-gold-foreground" scoringPoints={knockoutPointsConfig.champion} roundKey="champion">
                 Champion
               </RoundHeading>
               <span className="bg-brand-gradient flex h-14 w-14 items-center justify-center rounded-2xl text-brand-foreground shadow-md">
@@ -249,7 +259,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
             {/* Final */}
             <div className="w-full">
-              <RoundHeading className="text-center" scoringPoints={knockoutPointsConfig.final}>
+              <RoundHeading className="text-center" scoringPoints={knockoutPointsConfig.final} roundKey="final">
                 {ROUND_LABELS.final}
               </RoundHeading>
               {renderSlotCard(32)}
@@ -257,7 +267,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
             {/* 3rd place (below the final) */}
             <div className="w-full">
-              <RoundHeading className="text-center" scoringPoints={knockoutPointsConfig.third}>
+              <RoundHeading className="text-center" scoringPoints={knockoutPointsConfig.third} roundKey="third">
                 {ROUND_LABELS.third}
               </RoundHeading>
               {renderSlotCard(31)}
@@ -265,13 +275,13 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           </div>
 
           {/* RIGHT HALF (mirrored) */}
-          <BracketColumn label={ROUND_LABELS.sf} align="right" scoringPoints={knockoutPointsConfig.sf}>
+          <BracketColumn label={ROUND_LABELS.sf} align="right" scoringPoints={knockoutPointsConfig.sf} roundKey="sf">
             {RIGHT.sf.map((s) => renderSlotCard(s, true))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.qf} align="right" scoringPoints={knockoutPointsConfig.qf}>
+          <BracketColumn label={ROUND_LABELS.qf} align="right" scoringPoints={knockoutPointsConfig.qf} roundKey="qf">
             {RIGHT.qf.map((s) => renderSlotCard(s, true))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.r16} align="right" scoringPoints={knockoutPointsConfig.r16}>
+          <BracketColumn label={ROUND_LABELS.r16} align="right" scoringPoints={knockoutPointsConfig.r16} roundKey="r16">
             {RIGHT.r16.map((s) => renderSlotCard(s, true))}
           </BracketColumn>
           <BracketColumn label={ROUND_LABELS.r32} align="right">
@@ -283,14 +293,50 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
   );
 }
 
+function PointsBadge({
+  points,
+  roundKey,
+  className,
+}: {
+  points: number;
+  roundKey: string;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const tooltipText = ROUND_POINT_TOOLTIPS[roundKey];
+
+  return (
+    <TooltipProvider>
+      <Tooltip open={open} onOpenChange={setOpen}>
+        <TooltipTrigger
+          className={cn(
+            "cursor-pointer rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary",
+            className,
+          )}
+          onClick={() => setOpen((v) => !v)}
+        >
+          +{points}
+        </TooltipTrigger>
+        {tooltipText && (
+          <TooltipContent>
+            +{points} {tooltipText}
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
 function RoundHeading({
   children,
   className,
   scoringPoints,
+  roundKey,
 }: {
   children: React.ReactNode;
   className?: string;
   scoringPoints?: number;
+  roundKey?: string;
 }) {
   return (
     <h3
@@ -300,10 +346,8 @@ function RoundHeading({
       )}
     >
       {children}
-      {scoringPoints !== undefined && (
-        <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold normal-case tracking-normal text-primary">
-          +{scoringPoints}
-        </span>
+      {scoringPoints !== undefined && roundKey && (
+        <PointsBadge points={scoringPoints} roundKey={roundKey} className="normal-case tracking-normal" />
       )}
     </h3>
   );
@@ -314,11 +358,13 @@ function BracketColumn({
   children,
   align = "left",
   scoringPoints,
+  roundKey,
 }: {
   label: string;
   children: React.ReactNode;
   align?: "left" | "right";
   scoringPoints?: number;
+  roundKey?: string;
 }) {
   return (
     <div className="flex w-[180px] flex-shrink-0 flex-col sm:w-[200px]">
@@ -331,10 +377,8 @@ function BracketColumn({
         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           {label}
         </h3>
-        {scoringPoints !== undefined && (
-          <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary">
-            +{scoringPoints}
-          </span>
+        {scoringPoints !== undefined && roundKey && (
+          <PointsBadge points={scoringPoints} roundKey={roundKey} />
         )}
       </div>
       <div className="flex h-full flex-col justify-around gap-3">{children}</div>
