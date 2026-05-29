@@ -191,7 +191,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
+      <div className="sticky top-16 z-20 flex flex-wrap items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
         <Button
           onClick={handleSave}
           disabled={!store.isDirty || saving}

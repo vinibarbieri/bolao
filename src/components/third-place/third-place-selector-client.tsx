@@ -61,7 +61,7 @@ export function ThirdPlaceSelectorClient({ teams }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-4 z-10 flex items-center gap-4 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
+      <div className="sticky top-16 z-20 flex items-center gap-4 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
         <div className="flex items-center gap-2">
           <Medal
             className={cn(

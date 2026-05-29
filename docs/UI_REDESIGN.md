@@ -119,6 +119,17 @@ Every emoji was replaced with a `lucide-react` icon; teams now show flags; tourn
 ### Login — `src/app/(auth)/login/page.tsx`
 - Gradient trophy logo mark, big display title, soft gradient glow behind the card.
 
+## Responsive layout & collapsible sidebar
+
+`src/components/app-shell.tsx` is a client wrapper (used by `src/app/(app)/layout.tsx`) that owns the sidebar state and a sticky top bar.
+
+- **Mobile (`< lg`)**: the sidebar is a slide-over **drawer** (`fixed`, off-screen by default) with a dimmed backdrop; the top-bar hamburger opens it, and tapping a nav link or the backdrop closes it.
+- **Desktop (`lg+`)**: the sidebar is static and can be **collapsed/expanded** — a `PanelLeftClose` button in the sidebar header hides it, the hamburger brings it back.
+- One hamburger, correct behavior per breakpoint (decided at click time via `matchMedia`).
+- The **theme toggle moved into the top bar** so it's reachable whether or not the sidebar is open (and there's no longer a duplicate).
+- Content uses a responsive container (`max-w-7xl`, `p-4 sm:p-6`); page headers already stack (`flex-col sm:flex-row`); data tables scroll horizontally (shadcn `Table` wraps in `overflow-x-auto`); the bracket scrolls horizontally on small screens.
+- In-page sticky toolbars (3rd place, bracket) were offset to `top-16` so they sit just below the sticky top bar.
+
 ## Contrast & dark-mode safety
 
 The whole UI runs through semantic tokens, never raw `text-white` / `bg-gray-*`, so both themes stay legible. Specifics:
@@ -155,6 +166,7 @@ All app pages have been redesigned: dashboard, groups, 3rd place, bracket, award
 - `src/components/page-header.tsx`
 - `src/components/theme-provider.tsx`
 - `src/components/theme-toggle.tsx`
+- `src/components/app-shell.tsx`
 - `docs/UI_REDESIGN.md`
 
 ## Files changed
