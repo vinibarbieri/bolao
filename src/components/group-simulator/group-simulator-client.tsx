@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import {
   useGroupSimulatorStore,
   type GroupLetter,
@@ -11,7 +11,7 @@ import { ScoresTable } from "./scores-table";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { saveGroupPredictions, saveScorePredictions } from "@/app/(app)/actions";
-import { Save } from "lucide-react";
+import { Save, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -40,6 +40,33 @@ export function GroupSimulatorClient({
   teamPointsMap,
 }: Props) {
   const store = useGroupSimulatorStore();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener("scroll", updateScrollState);
+    const ro = new ResizeObserver(updateScrollState);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      ro.disconnect();
+    };
+  }, [updateScrollState]);
+
+  const scroll = useCallback((dir: "left" | "right") => {
+    scrollRef.current?.scrollBy({ left: dir === "left" ? -160 : 160, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     if (!store.isInitialized) {
@@ -95,17 +122,49 @@ export function GroupSimulatorClient({
   return (
     <div className="space-y-6">
       {/* Group selector tabs */}
-      <div className="flex flex-wrap gap-2">
-        {GROUP_LETTERS.map((letter) => (
+      <div className="relative flex items-center gap-1">
+        {(canScrollLeft || canScrollRight) && (
           <Button
-            key={letter}
-            variant={store.activeGroup === letter ? "default" : "outline"}
-            size="sm"
-            onClick={() => store.setActiveGroup(letter)}
+            variant="outline"
+            size="icon"
+            className="shrink-0 h-8 w-8"
+            onClick={() => scroll("left")}
+            disabled={!canScrollLeft}
+            aria-label="Scroll left"
           >
-            Group {letter}
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-        ))}
+        )}
+
+        <div
+          ref={scrollRef}
+          className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        >
+          {GROUP_LETTERS.map((letter) => (
+            <Button
+              key={letter}
+              variant={store.activeGroup === letter ? "default" : "outline"}
+              size="sm"
+              className="shrink-0"
+              onClick={() => store.setActiveGroup(letter)}
+            >
+              Group {letter}
+            </Button>
+          ))}
+        </div>
+
+        {(canScrollLeft || canScrollRight) && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="shrink-0 h-8 w-8"
+            onClick={() => scroll("right")}
+            disabled={!canScrollRight}
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* View toggle */}
