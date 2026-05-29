@@ -179,7 +179,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           className="gap-2"
         >
           <Save className="h-4 w-4" />
-          {saving ? t("saving") : t("saveBracket")}
+          {saving ? t("saving") : store.isDirty ? t("saveBracket") : t("saved")}
         </Button>
         <Button
           variant="outline"
@@ -189,14 +189,6 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           <RotateCcw className="h-4 w-4" />
           {t("reset")}
         </Button>
-        {store.isDirty ? (
-          <span className="flex items-center gap-1.5 text-sm font-medium text-third-foreground">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-third" />
-            {t("unsavedChanges")}
-          </span>
-        ) : (
-          <span className="text-sm text-muted-foreground">{t("saved")}</span>
-        )}
         {totalKnockoutPoints > 0 && (
           <span className="ml-auto rounded-full bg-qualified/15 px-3 py-1 font-mono text-sm font-bold text-qualified-foreground">
             {t("ptsEarned", { points: totalKnockoutPoints })}
