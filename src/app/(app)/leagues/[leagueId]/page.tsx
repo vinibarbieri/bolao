@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Trophy, Crown, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 
 export default async function LeagueDetailPage({
   params,
@@ -31,6 +32,7 @@ export default async function LeagueDetailPage({
 }) {
   const { leagueId } = await params;
   const user = await requireUser();
+  const t = await getTranslations("LeagueDetail");
 
   const league = await db
     .select()
@@ -56,7 +58,7 @@ export default async function LeagueDetailPage({
             {league[0].name}
           </h1>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <span className="text-sm">Invite code:</span>
+            <span className="text-sm">{t("inviteCode")}</span>
             <Badge variant="outline" className="font-mono text-sm">
               {league[0].inviteCode}
             </Badge>
@@ -64,32 +66,31 @@ export default async function LeagueDetailPage({
         </div>
       </div>
 
-      {/* Leaderboard */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-gold" />
-            Leaderboard
+            {t("leaderboard")}
           </CardTitle>
-          <CardDescription>{members.length} members</CardDescription>
+          <CardDescription>{t("members", { count: members.length })}</CardDescription>
         </CardHeader>
         <CardContent>
           {leaderboard.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No scores yet. Scores will appear after the tournament starts.
+              {t("noScores")}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead>Player</TableHead>
-                  <TableHead className="text-center">Groups</TableHead>
-                  <TableHead className="text-center">Knockout</TableHead>
-                  <TableHead className="text-center">Awards</TableHead>
-                  <TableHead className="text-center">Trio</TableHead>
+                  <TableHead className="w-12">{t("rank")}</TableHead>
+                  <TableHead>{t("player")}</TableHead>
+                  <TableHead className="text-center">{t("groups")}</TableHead>
+                  <TableHead className="text-center">{t("knockout")}</TableHead>
+                  <TableHead className="text-center">{t("awards")}</TableHead>
+                  <TableHead className="text-center">{t("trio")}</TableHead>
                   <TableHead className="text-center font-bold">
-                    Total
+                    {t("total")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -128,18 +129,10 @@ export default async function LeagueDetailPage({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
-                      {entry.groupPoints}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {entry.knockoutPoints}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {entry.awardPoints}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {entry.trioPoints}
-                    </TableCell>
+                    <TableCell className="text-center">{entry.groupPoints}</TableCell>
+                    <TableCell className="text-center">{entry.knockoutPoints}</TableCell>
+                    <TableCell className="text-center">{entry.awardPoints}</TableCell>
+                    <TableCell className="text-center">{entry.trioPoints}</TableCell>
                     <TableCell className="text-center text-lg font-bold">
                       {entry.totalPoints}
                     </TableCell>
@@ -151,12 +144,11 @@ export default async function LeagueDetailPage({
         </CardContent>
       </Card>
 
-      {/* Members list */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
-            Members
+            {t("membersTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>

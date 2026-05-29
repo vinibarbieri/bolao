@@ -14,10 +14,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Trophy } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { LocaleToggle } from "@/components/locale-toggle";
 
 const isDev = process.env.NODE_ENV === "development";
 
 export default function LoginPage() {
+  const t = useTranslations("Login");
   const router = useRouter();
   const [email, setEmail] = useState("dev@bolao.local");
   const [password, setPassword] = useState("devpassword");
@@ -39,7 +42,6 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     const supabase = createClient();
-    // Try sign in first, then sign up if user doesn't exist
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
     if (signInError) {
       const { error: signUpError } = await supabase.auth.signUp({ email, password });
@@ -55,6 +57,9 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      <div className="absolute top-4 right-4">
+        <LocaleToggle />
+      </div>
       <div className="bg-brand-gradient pointer-events-none absolute -top-24 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full opacity-20 blur-3xl" />
       <Card className="relative w-full max-w-md shadow-lg">
         <CardHeader className="items-center text-center">
@@ -65,17 +70,17 @@ export default function LoginPage() {
             Bolão 2026
           </CardTitle>
           <CardDescription>
-            World Cup prediction game for friends
+            {t("subtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {isDev ? (
             <form onSubmit={handleDevLogin} className="space-y-3">
               <p className="text-xs text-muted-foreground text-center border rounded px-2 py-1 bg-muted">
-                Dev mode — email/password login
+                {t("devMode")}
               </p>
               <div className="space-y-1">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("email")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -85,7 +90,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("password")}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -96,7 +101,7 @@ export default function LoginPage() {
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                {loading ? "Signing in..." : "Sign in"}
+                {loading ? t("signingIn") : t("signIn")}
               </Button>
             </form>
           ) : (
@@ -124,7 +129,7 @@ export default function LoginPage() {
                   fill="#EA4335"
                 />
               </svg>
-              Sign in with Google
+              {t("signInWithGoogle")}
             </Button>
           )}
         </CardContent>

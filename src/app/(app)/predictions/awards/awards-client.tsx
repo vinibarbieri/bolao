@@ -24,37 +24,18 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
-const AWARD_TYPES: {
+const AWARD_TYPE_KEYS: {
   type: "golden_boot" | "golden_glove" | "top_assist" | "goal_of_tournament";
-  label: string;
-  description: string;
+  labelKey: string;
+  descKey: string;
   icon: LucideIcon;
 }[] = [
-  {
-    type: "golden_boot",
-    label: "Golden Boot",
-    description: "Top scorer of the tournament",
-    icon: Goal,
-  },
-  {
-    type: "golden_glove",
-    label: "Golden Glove",
-    description: "Best goalkeeper of the tournament",
-    icon: Shield,
-  },
-  {
-    type: "top_assist",
-    label: "Top Assists",
-    description: "Most assists in the tournament",
-    icon: Handshake,
-  },
-  {
-    type: "goal_of_tournament",
-    label: "Goal of the Tournament",
-    description: "Scorer of the best goal of the tournament",
-    icon: Sparkles,
-  },
+  { type: "golden_boot", labelKey: "goldenBoot", descKey: "goldenBootDesc", icon: Goal },
+  { type: "golden_glove", labelKey: "goldenGlove", descKey: "goldenGloveDesc", icon: Shield },
+  { type: "top_assist", labelKey: "topAssists", descKey: "topAssistsDesc", icon: Handshake },
+  { type: "goal_of_tournament", labelKey: "goalOfTournament", descKey: "goalOfTournamentDesc", icon: Sparkles },
 ];
 
 interface Player {
@@ -81,6 +62,8 @@ export function AwardsPredictionClient({
   earnedPointsMap?: Record<string, number>;
   awardPointsConfig?: Record<string, number>;
 }) {
+  const t = useTranslations("Awards");
+
   const predMap = useMemo(() => {
     const map: Record<string, Prediction> = {};
     for (const p of existingPredictions) {
@@ -93,7 +76,7 @@ export function AwardsPredictionClient({
     Record<string, { playerId?: string; search?: string }>
   >(() => {
     const initial: Record<string, { playerId?: string; search?: string }> = {};
-    for (const award of AWARD_TYPES) {
+    for (const award of AWARD_TYPE_KEYS) {
       const existing = predMap[award.type];
       initial[award.type] = {
         playerId: existing?.playerId ?? undefined,
@@ -110,16 +93,16 @@ export function AwardsPredictionClient({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const data = AWARD_TYPES.map((award) => ({
+      const data = AWARD_TYPE_KEYS.map((award) => ({
         awardType: award.type,
         playerId: selections[award.type]?.playerId,
       }));
 
       await saveAwardPredictions(data);
-      toast.success("Award predictions saved!");
+      toast.success(t("saved"));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to save"
+        error instanceof Error ? error.message : t("failedSave")
       );
     } finally {
       setSaving(false);
@@ -129,7 +112,7 @@ export function AwardsPredictionClient({
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        {AWARD_TYPES.map((award) => {
+        {AWARD_TYPE_KEYS.map((award) => {
           const Icon = award.icon;
           const sel = selections[award.type];
           const chosen = sel?.playerId
@@ -159,12 +142,12 @@ export function AwardsPredictionClient({
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg">{award.label}</CardTitle>
+                      <CardTitle className="text-lg">{t(award.labelKey as keyof typeof t)}</CardTitle>
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary">
                         +{awardPointsConfig[award.type] ?? 0}
                       </span>
                     </div>
-                    <CardDescription>{award.description}</CardDescription>
+                    <CardDescription>{t(award.descKey as keyof typeof t)}</CardDescription>
                   </div>
                   <div className="ml-auto flex items-center gap-2">
                     {filled && <Check className="h-5 w-5 shrink-0 text-qualified" />}
@@ -178,7 +161,7 @@ export function AwardsPredictionClient({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Label>Player</Label>
+                  <Label>{t("player")}</Label>
                   {chosen && (
                     <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
                       <TeamFlag teamId={chosen.teamId} size="md" />
@@ -189,7 +172,7 @@ export function AwardsPredictionClient({
                     </div>
                   )}
                   <Input
-                    placeholder="Search for a player..."
+                    placeholder={t("searchPlayer")}
                     value={sel?.search ?? ""}
                     onChange={(e) => {
                       setSelections((prev) => ({
@@ -245,7 +228,7 @@ export function AwardsPredictionClient({
       <div className="sticky bottom-4 flex items-center rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           <Save className="h-4 w-4" />
-          {saving ? "Saving..." : "Save Award Predictions"}
+          {saving ? t("saving") : t("saveAwards")}
         </Button>
       </div>
     </div>

@@ -18,6 +18,7 @@ import type {
   TeamPlacement,
   GroupLetter,
 } from "@/lib/stores/group-simulator-store";
+import { useTranslations } from "next-intl";
 
 interface ScoresTableProps {
   group: GroupLetter;
@@ -38,20 +39,20 @@ export function ScoresTable({
   placements,
   onScoreChange,
 }: ScoresTableProps) {
+  const t = useTranslations("Groups");
   const teamNames = new Map(placements.map((t) => [t.teamId, t.teamName]));
 
   return (
     <div className="@container">
       <div className="flex flex-col gap-4 @[900px]:flex-row @[900px]:items-start">
-        {/* Match score inputs */}
         <Card className="min-w-0 flex-1">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Group {group} Matches</CardTitle>
+            <CardTitle className="text-lg">{t("matches", { letter: group })}</CardTitle>
           </CardHeader>
           <CardContent>
             {scores.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No matches available for this group yet.
+                {t("noMatches")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -118,12 +119,11 @@ export function ScoresTable({
           </CardContent>
         </Card>
 
-        {/* Computed standings */}
         {standings.length > 0 && (
           <Card className="@[900px]:shrink-0">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm text-muted-foreground">
-                Computed Standings
+                {t("computedStandings")}
               </CardTitle>
             </CardHeader>
             <CardContent>

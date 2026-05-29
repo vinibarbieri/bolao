@@ -23,10 +23,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 
 export default async function DashboardPage() {
   const user = await requireUser();
   await ensureProfile();
+  const t = await getTranslations("Dashboard");
 
   const [config, leagues, groupPreds, bracketPicks, awardPreds, trioPreds] = await Promise.all([
     getTournamentConfig(),
@@ -54,25 +56,26 @@ export default async function DashboardPage() {
   ];
   const completedSteps = steps.filter(Boolean).length;
   const progress = Math.round((completedSteps / steps.length) * 100);
+  const firstName = user.user_metadata?.full_name?.split(" ")[0] ?? "player";
 
   return (
     <div className="space-y-6">
       <div className="bg-brand-gradient relative overflow-hidden rounded-2xl p-6 text-brand-foreground shadow-lg">
         <div className="relative z-10">
           <p className="text-sm font-medium text-brand-foreground/75">
-            Welcome back, {user.user_metadata?.full_name?.split(" ")[0] ?? "player"} 👋
+            {t("welcomeBack", { name: firstName })}
           </p>
           <h1 className="mt-1 font-heading text-4xl font-bold uppercase tracking-wide">
-            Bolão World Cup 2026
+            {t("title")}
           </h1>
           <p className="mt-1 max-w-prose text-sm text-brand-foreground/80">
-            Make your predictions, build your bracket and climb your leagues.
+            {t("subtitle")}
           </p>
           {!isLocked && (
             <div className="mt-4 max-w-sm">
               <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-brand-foreground/90">
-                <span>Predictions progress</span>
-                <span>{completedSteps}/{steps.length} done</span>
+                <span>{t("predictionsProgress")}</span>
+                <span>{t("done", { completed: completedSteps, total: steps.length })}</span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-brand-foreground/20">
                 <div
@@ -91,7 +94,7 @@ export default async function DashboardPage() {
           <CardContent className="flex items-center gap-3 py-4">
             <Lock className="h-5 w-5 text-third-foreground" />
             <p className="font-medium text-third-foreground">
-              Predictions are locked. The tournament has started!
+              {t("locked")}
             </p>
           </CardContent>
         </Card>
@@ -100,42 +103,42 @@ export default async function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={Volleyball}
-          label="Groups Completed"
+          label={t("groupsCompleted")}
           value={`${groupsCompleted}/12`}
           href="/groups"
-          cta={groupsCompleted === 12 ? "Review" : "Continue"}
+          cta={groupsCompleted === 12 ? t("review") : t("continue")}
           tint="text-chart-3"
         />
         <StatCard
           icon={Medal}
-          label="3rd Place Selection"
+          label={t("thirdPlaceSelection")}
           value={`${thirdPlaceSelected}/8`}
           href="/third-place"
-          cta={thirdPlaceSelected === 8 ? "Review" : "Select"}
+          cta={thirdPlaceSelected === 8 ? t("review") : t("select")}
           tint="text-third"
         />
         <StatCard
           icon={Trophy}
-          label="Bracket"
+          label={t("bracket")}
           value={
             hasBracket ? (
               <Badge className="bg-qualified/15 text-qualified-foreground">
-                Complete
+                {t("complete")}
               </Badge>
             ) : (
-              <Badge variant="secondary">Pending</Badge>
+              <Badge variant="secondary">{t("pending")}</Badge>
             )
           }
           href="/bracket"
-          cta={hasBracket ? "Review" : "Build"}
+          cta={hasBracket ? t("review") : t("build")}
           tint="text-chart-1"
         />
         <StatCard
           icon={Users}
-          label="Leagues"
+          label={t("leagues")}
           value={leagues.length}
           href="/leagues"
-          cta="Manage"
+          cta={t("manage")}
           tint="text-chart-5"
         />
       </div>
@@ -145,44 +148,20 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ListChecks className="h-5 w-5 text-primary" />
-              Prediction Checklist
+              {t("predictionChecklist")}
             </CardTitle>
             <CardDescription>
-              Complete all steps before the tournament starts
+              {t("checklistSubtitle")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              <ChecklistItem
-                done={groupsCompleted === 12}
-                label="Predict all 12 group standings"
-                href="/groups"
-              />
-              <ChecklistItem
-                done={thirdPlaceSelected === 8}
-                label="Select 8 best 3rd-place teams"
-                href="/third-place"
-              />
-              <ChecklistItem
-                done={hasBracket}
-                label="Build your knockout bracket"
-                href="/bracket"
-              />
-              <ChecklistItem
-                done={hasAwards}
-                label="Pick award winners"
-                href="/predictions/awards"
-              />
-              <ChecklistItem
-                done={hasTrio}
-                label="Select your Golden Trio"
-                href="/predictions/trio"
-              />
-              <ChecklistItem
-                done={leagues.length > 0}
-                label="Join or create a league"
-                href="/leagues"
-              />
+              <ChecklistItem done={groupsCompleted === 12} label={t("predictGroups")} href="/groups" />
+              <ChecklistItem done={thirdPlaceSelected === 8} label={t("selectThirdPlace")} href="/third-place" />
+              <ChecklistItem done={hasBracket} label={t("buildBracket")} href="/bracket" />
+              <ChecklistItem done={hasAwards} label={t("pickAwards")} href="/predictions/awards" />
+              <ChecklistItem done={hasTrio} label={t("selectGoldenTrio")} href="/predictions/trio" />
+              <ChecklistItem done={leagues.length > 0} label={t("joinOrCreateLeague")} href="/leagues" />
             </ul>
           </CardContent>
         </Card>

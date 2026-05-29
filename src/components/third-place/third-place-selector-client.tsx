@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Check, Medal, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface ThirdPlaceTeam {
   teamId: string;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) {
+  const t = useTranslations("ThirdPlace");
   const earnedSet = new Set(earnedThirdSet);
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(
@@ -48,11 +50,11 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
     setSaving(true);
     try {
       await saveThirdPlaceSelections(Array.from(selected));
-      toast.success("3rd place selections saved!");
+      toast.success(t("saved"));
       router.push("/bracket");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to save"
+        error instanceof Error ? error.message : t("failedSave")
       );
     } finally {
       setSaving(false);
@@ -73,7 +75,7 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
           />
           <span className="text-sm font-semibold">
             {selected.size}
-            <span className="text-muted-foreground">/8 selected</span>
+            <span className="text-muted-foreground">{t("selected")}</span>
           </span>
         </div>
         <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
@@ -90,7 +92,7 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
           disabled={!complete || saving}
           className="gap-2"
         >
-          {saving ? "Saving..." : "Save & Build Bracket"}
+          {saving ? t("saving") : t("saveAndBuild")}
           {!saving && <ArrowRight className="h-4 w-4" />}
         </Button>
       </div>
@@ -130,7 +132,7 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{team.teamName}</p>
                     <p className="text-xs text-muted-foreground">
-                      3rd in Group {team.groupLetter}
+                      {t("thirdInGroup", { letter: team.groupLetter })}
                     </p>
                   </div>
                   <Badge variant="outline" className="font-mono">

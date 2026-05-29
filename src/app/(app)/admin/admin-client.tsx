@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface TournamentConfig {
   id: number;
@@ -36,6 +37,7 @@ export function AdminClient({
   config: TournamentConfig | null;
   userId: string;
 }) {
+  const t = useTranslations("Admin");
   const [locking, setLocking] = useState(false);
   const [syncingPlayers, setSyncingPlayers] = useState(false);
 
@@ -45,12 +47,12 @@ export function AdminClient({
       const res = await fetch("/api/admin/lock-predictions", {
         method: "POST",
       });
-      if (!res.ok) throw new Error("Failed to lock predictions");
-      toast.success("Predictions locked!");
+      if (!res.ok) throw new Error(t("failedLock"));
+      toast.success(t("predictionsLocked"));
       window.location.reload();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to lock"
+        error instanceof Error ? error.message : t("failedLockGeneric")
       );
     } finally {
       setLocking(false);
@@ -62,16 +64,14 @@ export function AdminClient({
     try {
       const res = await fetch("/api/admin/sync-players", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to sync players");
-      toast.success(
-        `Players synced: ${data.inserted} new, ${data.updated} updated`,
-      );
+      if (!res.ok) throw new Error(data.error ?? t("failedSync"));
+      toast.success(t("syncedPlayers", { inserted: data.inserted, updated: data.updated }));
       if (data.unmatchedTeams?.length) {
-        toast.warning(`Unmatched teams: ${data.unmatchedTeams.join(", ")}`);
+        toast.warning(t("unmatchedTeams", { teams: data.unmatchedTeams.join(", ") }));
       }
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to sync players",
+        error instanceof Error ? error.message : t("failedSync"),
       );
     } finally {
       setSyncingPlayers(false);
@@ -81,11 +81,11 @@ export function AdminClient({
   const handleRecalculate = async () => {
     try {
       const res = await fetch("/api/admin/recalculate", { method: "POST" });
-      if (!res.ok) throw new Error("Failed to recalculate");
-      toast.success("Scores recalculated!");
+      if (!res.ok) throw new Error(t("failedRecalculate"));
+      toast.success(t("scoresRecalculated"));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to recalculate"
+        error instanceof Error ? error.message : t("failedRecalculate")
       );
     }
   };
@@ -96,19 +96,19 @@ export function AdminClient({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            Tournament Status
+            {t("tournamentStatus")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">Stage:</span>
+            <span className="text-sm text-muted-foreground">{t("stage")}</span>
             <Badge variant="secondary">
-              {config?.currentStage ?? "Not configured"}
+              {config?.currentStage ?? t("notConfigured")}
             </Badge>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground">
-              Predictions:
+              {t("predictions")}
             </span>
             <Badge
               className={cn(
@@ -119,17 +119,17 @@ export function AdminClient({
             >
               {config?.isLocked ? (
                 <>
-                  <Lock className="mr-1 h-3 w-3" /> Locked
+                  <Lock className="mr-1 h-3 w-3" /> {t("locked")}
                 </>
               ) : (
-                "Open"
+                t("open")
               )}
             </Badge>
           </div>
           {config?.predictionsLockAt && (
             <div className="flex items-center gap-3">
               <CalendarClock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Lock at:</span>
+              <span className="text-sm text-muted-foreground">{t("lockAt")}</span>
               <span className="text-sm">
                 {new Date(config.predictionsLockAt).toLocaleString()}
               </span>
@@ -143,14 +143,14 @@ export function AdminClient({
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <ListChecks className="h-5 w-5 text-chart-2" />
-              Match Results
+              {t("matchResults")}
             </CardTitle>
-            <CardDescription>Enter scores and MOTM</CardDescription>
+            <CardDescription>{t("enterScores")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/admin/matches">
               <Button variant="outline" className="w-full">
-                Manage Matches
+                {t("manageMatches")}
               </Button>
             </Link>
           </CardContent>
@@ -160,11 +160,9 @@ export function AdminClient({
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Lock className="h-5 w-5 text-eliminated" />
-              Lock Predictions
+              {t("lockPredictions")}
             </CardTitle>
-            <CardDescription>
-              Prevent further prediction changes
-            </CardDescription>
+            <CardDescription>{t("preventChanges")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button
@@ -174,7 +172,7 @@ export function AdminClient({
               className="w-full gap-2"
             >
               <Lock className="h-4 w-4" />
-              {config?.isLocked ? "Already Locked" : "Lock Now"}
+              {config?.isLocked ? t("alreadyLocked") : t("lockNow")}
             </Button>
           </CardContent>
         </Card>
@@ -183,11 +181,9 @@ export function AdminClient({
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <RefreshCw className="h-5 w-5 text-chart-3" />
-              Recalculate Scores
+              {t("recalculateScores")}
             </CardTitle>
-            <CardDescription>
-              Recompute all user scores and leaderboard
-            </CardDescription>
+            <CardDescription>{t("recomputeAll")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button
@@ -196,7 +192,7 @@ export function AdminClient({
               className="w-full gap-2"
             >
               <RefreshCw className="h-4 w-4" />
-              Recalculate All
+              {t("recalculateAll")}
             </Button>
           </CardContent>
         </Card>
@@ -205,11 +201,9 @@ export function AdminClient({
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Users className="h-5 w-5 text-chart-4" />
-              Sync Players
+              {t("syncPlayers")}
             </CardTitle>
-            <CardDescription>
-              Import World Cup squads for awards &amp; golden trio
-            </CardDescription>
+            <CardDescription>{t("importSquads")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button
@@ -219,7 +213,7 @@ export function AdminClient({
               className="w-full gap-2"
             >
               <Users className="h-4 w-4" />
-              {syncingPlayers ? "Syncing..." : "Sync Players"}
+              {syncingPlayers ? t("syncing") : t("syncPlayers")}
             </Button>
           </CardContent>
         </Card>

@@ -5,9 +5,12 @@ import { PageHeader } from "@/components/page-header";
 import { ScoringGuide } from "@/components/scoring-guide";
 import { TRIO_MOTM_POINTS } from "@/lib/scoring/award-scoring";
 import { Star } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 export default async function GoldenTrioPage() {
   const user = await requireUser();
+  const t = await getTranslations("GoldenTrio");
+
   const [trio, players, scoreBreakdown] = await Promise.all([
     getUserGoldenTrio(user.id),
     getAllPlayers(),
@@ -24,11 +27,11 @@ export default async function GoldenTrioPage() {
     <div className="space-y-6">
       <PageHeader
         icon={Star}
-        title="Golden Trio"
-        description="Pick 3 players you think will be the greatest of the tournament"
+        title={t("title")}
+        description={t("description")}
       />
 
-      <ScoringGuide items={[{ label: "Per MOTM award won by your pick", points: TRIO_MOTM_POINTS }]} />
+      <ScoringGuide items={[{ label: t("perMotm"), points: TRIO_MOTM_POINTS }]} />
 
       <GoldenTrioClient existingTrio={trio} players={players} slotPoints={trioSlotPoints} />
     </div>

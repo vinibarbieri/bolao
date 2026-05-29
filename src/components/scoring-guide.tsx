@@ -1,18 +1,21 @@
 import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 
 interface ScoringItem {
   label: string;
   points: number;
 }
 
-export function ScoringGuide({
+export async function ScoringGuide({
   items,
   className,
 }: {
   items: ScoringItem[];
   className?: string;
 }) {
+  const t = await getTranslations("Scoring");
+
   return (
     <div
       className={cn(
@@ -22,7 +25,7 @@ export function ScoringGuide({
     >
       <span className="flex items-center gap-1.5 font-medium text-muted-foreground">
         <Info className="h-3.5 w-3.5" />
-        Scoring
+        {t("label")}
       </span>
       {items.map((item) => (
         <span key={item.label} className="flex items-center gap-1.5">

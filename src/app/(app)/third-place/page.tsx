@@ -5,9 +5,12 @@ import { PageHeader } from "@/components/page-header";
 import { ScoringGuide } from "@/components/scoring-guide";
 import { POINTS as GROUP_POINTS } from "@/lib/scoring/group-scoring";
 import { Medal, AlertTriangle } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 export default async function ThirdPlacePage() {
   const user = await requireUser();
+  const t = await getTranslations("ThirdPlace");
+
   const [predictions, teamsByGroup, scoreBreakdown] = await Promise.all([
     getUserGroupPredictions(user.id),
     getTeamsByGroup(),
@@ -22,7 +25,6 @@ export default async function ThirdPlacePage() {
     }
   }
 
-  // Get all teams predicted as 3rd place
   const thirdPlaceTeams = predictions
     .filter((p) => p.predictedPosition === 3)
     .map((p) => {
@@ -42,22 +44,21 @@ export default async function ThirdPlacePage() {
     <div className="space-y-6">
       <PageHeader
         icon={Medal}
-        title="3rd Place Selection"
-        description="Select exactly 8 of the 12 third-place teams you think will qualify for the Round of 32"
+        title={t("title")}
+        description={t("description")}
       />
 
-      <ScoringGuide items={[{ label: "Each correct qualifier", points: GROUP_POINTS.CORRECT_THIRD_QUALIFIES }]} />
+      <ScoringGuide items={[{ label: t("eachCorrectQualifier"), points: GROUP_POINTS.CORRECT_THIRD_QUALIFIES }]} />
 
       {!hasAllGroups ? (
         <div className="flex items-start gap-3 rounded-xl border border-third/50 bg-third/10 p-6">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-third-foreground" />
           <div>
             <p className="font-medium text-third-foreground">
-              Complete all 12 group predictions first before selecting 3rd-place
-              qualifiers.
+              {t("completeGroupsFirst")}
             </p>
             <p className="mt-1 text-sm text-third-foreground/80">
-              You have {thirdPlaceTeams.length}/12 groups completed.
+              {t("groupsCompleted", { count: thirdPlaceTeams.length })}
             </p>
           </div>
         </div>

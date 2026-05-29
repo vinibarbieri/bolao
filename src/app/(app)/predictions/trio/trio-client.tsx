@@ -16,6 +16,7 @@ import { TeamFlag } from "@/components/team-badge";
 import { cn } from "@/lib/utils";
 import { Star, X, Plus, Save, Search } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface Player {
   id: string;
@@ -38,6 +39,8 @@ export function GoldenTrioClient({
   players: Player[];
   slotPoints?: Record<number, number>;
 }) {
+  const t = useTranslations("GoldenTrio");
+
   const playerMap = useMemo(
     () => new Map(players.map((p) => [p.id, p])),
     [players]
@@ -83,17 +86,17 @@ export function GoldenTrioClient({
       .filter(Boolean) as TrioPick[];
 
     if (validPicks.length !== 3) {
-      toast.error("Select exactly 3 players");
+      toast.error(t("selectExact3"));
       return;
     }
 
     setSaving(true);
     try {
       await saveGoldenTrio(validPicks);
-      toast.success("Golden Trio saved!");
+      toast.success(t("saved"));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to save"
+        error instanceof Error ? error.message : t("failedSave")
       );
     } finally {
       setSaving(false);
@@ -133,7 +136,7 @@ export function GoldenTrioClient({
                       player ? "fill-gold text-gold" : "text-muted-foreground",
                     )}
                   />
-                  Pick #{slot + 1}
+                  {t("pick", { slot: slot + 1 })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -154,7 +157,7 @@ export function GoldenTrioClient({
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label="Remove player"
+                      aria-label={t("removePlayer")}
                       onClick={() => handleRemove(slot)}
                     >
                       <X className="h-4 w-4" />
@@ -170,7 +173,7 @@ export function GoldenTrioClient({
                     }}
                   >
                     <Plus className="h-4 w-4" />
-                    Select Player
+                    {t("selectPlayer")}
                   </Button>
                 )}
               </CardContent>
@@ -183,7 +186,7 @@ export function GoldenTrioClient({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">
-              Select player for Pick #{searchSlot + 1}
+              {t("selectPlayerFor", { slot: searchSlot + 1 })}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -191,7 +194,7 @@ export function GoldenTrioClient({
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 className="pl-9"
-                placeholder="Search players..."
+                placeholder={t("searchPlayers")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 autoFocus
@@ -216,12 +219,12 @@ export function GoldenTrioClient({
               ))}
               {filteredPlayers.length === 0 && (
                 <p className="p-3 text-sm text-muted-foreground">
-                  No players found
+                  {t("noPlayersFound")}
                 </p>
               )}
             </div>
             <Button variant="ghost" onClick={() => setSearchSlot(null)}>
-              Cancel
+              {t("cancel")}
             </Button>
           </CardContent>
         </Card>
@@ -234,10 +237,10 @@ export function GoldenTrioClient({
           className="gap-2"
         >
           <Save className="h-4 w-4" />
-          {saving ? "Saving..." : "Save Golden Trio"}
+          {saving ? t("saving") : t("saveGoldenTrio")}
         </Button>
         <span className="text-sm text-muted-foreground">
-          {picks.filter(Boolean).length}/3 selected
+          {t("selected", { count: picks.filter(Boolean).length })}
         </span>
       </div>
     </div>

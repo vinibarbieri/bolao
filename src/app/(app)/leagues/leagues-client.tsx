@@ -17,6 +17,7 @@ import { Plus, LogIn, Trophy, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface League {
   id: string;
@@ -27,6 +28,7 @@ interface League {
 }
 
 export function LeaguesClient({ leagues }: { leagues: League[] }) {
+  const t = useTranslations("Leagues");
   const router = useRouter();
   const [newLeagueName, setNewLeagueName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
@@ -38,12 +40,12 @@ export function LeaguesClient({ leagues }: { leagues: League[] }) {
     setCreating(true);
     try {
       await createLeague(newLeagueName.trim());
-      toast.success("League created!");
+      toast.success(t("leagueCreated"));
       setNewLeagueName("");
       router.refresh();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to create league"
+        error instanceof Error ? error.message : t("failedCreate")
       );
     } finally {
       setCreating(false);
@@ -55,12 +57,12 @@ export function LeaguesClient({ leagues }: { leagues: League[] }) {
     setJoining(true);
     try {
       await joinLeague(inviteCode.trim());
-      toast.success("Joined league!");
+      toast.success(t("leagueJoined"));
       setInviteCode("");
       router.refresh();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to join league"
+        error instanceof Error ? error.message : t("failedJoin")
       );
     } finally {
       setJoining(false);
@@ -72,48 +74,44 @@ export function LeaguesClient({ leagues }: { leagues: League[] }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Create League</CardTitle>
-            <CardDescription>
-              Start a new league and invite friends
-            </CardDescription>
+            <CardTitle>{t("createLeague")}</CardTitle>
+            <CardDescription>{t("createDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <Label htmlFor="league-name">League Name</Label>
+              <Label htmlFor="league-name">{t("leagueName")}</Label>
               <Input
                 id="league-name"
                 value={newLeagueName}
                 onChange={(e) => setNewLeagueName(e.target.value)}
-                placeholder="My World Cup League"
+                placeholder={t("leagueNamePlaceholder")}
               />
             </div>
             <Button onClick={handleCreate} disabled={creating || !newLeagueName.trim()} className="gap-2">
               <Plus className="h-4 w-4" />
-              {creating ? "Creating..." : "Create League"}
+              {creating ? t("creating") : t("createBtn")}
             </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Join League</CardTitle>
-            <CardDescription>
-              Enter an invite code from a friend
-            </CardDescription>
+            <CardTitle>{t("joinLeague")}</CardTitle>
+            <CardDescription>{t("joinDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <Label htmlFor="invite-code">Invite Code</Label>
+              <Label htmlFor="invite-code">{t("inviteCode")}</Label>
               <Input
                 id="invite-code"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
-                placeholder="abc12345"
+                placeholder={t("inviteCodePlaceholder")}
               />
             </div>
             <Button onClick={handleJoin} disabled={joining || !inviteCode.trim()} className="gap-2">
               <LogIn className="h-4 w-4" />
-              {joining ? "Joining..." : "Join League"}
+              {joining ? t("joining") : t("joinBtn")}
             </Button>
           </CardContent>
         </Card>
@@ -121,7 +119,7 @@ export function LeaguesClient({ leagues }: { leagues: League[] }) {
 
       {leagues.length > 0 && (
         <div>
-          <h2 className="mb-3 text-xl font-semibold">Your Leagues</h2>
+          <h2 className="mb-3 text-xl font-semibold">{t("yourLeagues")}</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {leagues.map((league) => (
               <Link key={league.id} href={`/leagues/${league.id}`} className="group">
@@ -140,7 +138,7 @@ export function LeaguesClient({ leagues }: { leagues: League[] }) {
                   <CardContent>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">
-                        Code:
+                        {t("code")}
                       </span>
                       <Badge variant="outline" className="font-mono">
                         {league.inviteCode}

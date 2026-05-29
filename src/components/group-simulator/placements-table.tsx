@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamFlag } from "@/components/team-badge";
 import { cn } from "@/lib/utils";
 import type { TeamPlacement, GroupLetter } from "@/lib/stores/group-simulator-store";
+import { useTranslations } from "next-intl";
 
 interface PlacementsTableProps {
   group: GroupLetter;
@@ -36,6 +37,7 @@ export function PlacementsTable({
   onReorder,
   teamPointsMap = {},
 }: PlacementsTableProps) {
+  const t = useTranslations("Groups");
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -56,10 +58,10 @@ export function PlacementsTable({
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <span className="bg-brand-gradient flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold text-brand-foreground">
+          {/* <span className="bg-brand-gradient flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold text-brand-foreground">
             {group}
-          </span>
-          Group {group}
+          </span> */}
+          {t("group", { letter: group })}
         </CardTitle>
       </CardHeader>
       <CardContent>

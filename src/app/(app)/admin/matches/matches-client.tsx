@@ -23,6 +23,7 @@ import { TeamFlag } from "@/components/team-badge";
 import { cn } from "@/lib/utils";
 import { Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const STATUS_STYLES: Record<string, string> = {
   finished: "bg-qualified/15 text-qualified-foreground",
@@ -103,6 +104,7 @@ export function MatchAdminClient({
   players: Player[];
   teams: Team[];
 }) {
+  const t = useTranslations("AdminMatches");
   const [editing, setEditing] = useState<EditState | null>(null);
 
   const teamNameMap = new Map(teams.map((t) => [t.id, t.name]));
@@ -122,7 +124,7 @@ export function MatchAdminClient({
     const home = parseInt(editing.homeScore);
     const away = parseInt(editing.awayScore);
     if (isNaN(home) || isNaN(away)) {
-      toast.error("Enter valid scores before saving.");
+      toast.error(t("invalidScores"));
       return;
     }
     try {
@@ -136,12 +138,12 @@ export function MatchAdminClient({
           motmPlayerId: editing.motmPlayerId || null,
         }),
       });
-      if (!res.ok) throw new Error("Failed to update match");
-      toast.success("Match result saved!");
+      if (!res.ok) throw new Error(t("failedUpdate"));
+      toast.success(t("matchSaved"));
       setEditing(null);
       window.location.reload();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to save");
+      toast.error(error instanceof Error ? error.message : t("failedSave"));
     }
   };
 
@@ -189,7 +191,7 @@ export function MatchAdminClient({
             </div>
 
             <div className="flex items-center gap-2">
-              <Label className="shrink-0 text-xs">MOTM</Label>
+              <Label className="shrink-0 text-xs">{t("motm")}</Label>
               <select
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 value={editing.motmPlayerId || ""}
@@ -197,7 +199,7 @@ export function MatchAdminClient({
                   setEditing((s) => s && { ...s, motmPlayerId: e.target.value })
                 }
               >
-                <option value="">— none —</option>
+                <option value="">{t("none")}</option>
                 {matchPlayers.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -209,7 +211,7 @@ export function MatchAdminClient({
             <div className="flex gap-1">
               <Button size="sm" className="gap-1" onClick={() => handleSubmit(match)}>
                 <Check className="h-3.5 w-3.5" />
-                Save
+                {t("save")}
               </Button>
               <Button
                 size="icon"
@@ -230,20 +232,20 @@ export function MatchAdminClient({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Group Stage Matches</CardTitle>
+          <CardTitle>{t("groupStageMatches")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Group</TableHead>
-                <TableHead>Home</TableHead>
-                <TableHead className="text-center">Score</TableHead>
-                <TableHead>Away</TableHead>
-                <TableHead>MOTM</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("number")}</TableHead>
+                <TableHead>{t("group")}</TableHead>
+                <TableHead>{t("home")}</TableHead>
+                <TableHead className="text-center">{t("score")}</TableHead>
+                <TableHead>{t("away")}</TableHead>
+                <TableHead>{t("motm")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead>{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -287,7 +289,7 @@ export function MatchAdminClient({
                         onClick={() => startEdit(match)}
                       >
                         <Pencil className="h-3.5 w-3.5" />
-                        Edit
+                        {t("edit")}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -302,20 +304,20 @@ export function MatchAdminClient({
       {knockoutMatches.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Knockout Matches</CardTitle>
+            <CardTitle>{t("knockoutMatches")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>#</TableHead>
-                  <TableHead>Stage</TableHead>
-                  <TableHead>Home</TableHead>
-                  <TableHead className="text-center">Score</TableHead>
-                  <TableHead>Away</TableHead>
-                  <TableHead>MOTM</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t("number")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead>{t("home")}</TableHead>
+                  <TableHead className="text-center">{t("score")}</TableHead>
+                  <TableHead>{t("away")}</TableHead>
+                  <TableHead>{t("motm")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead>{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -361,7 +363,7 @@ export function MatchAdminClient({
                           onClick={() => startEdit(match)}
                         >
                           <Pencil className="h-3.5 w-3.5" />
-                          Edit
+                          {t("edit")}
                         </Button>
                       </TableCell>
                     </TableRow>

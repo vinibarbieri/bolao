@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { saveGroupPredictions, saveScorePredictions } from "@/app/(app)/actions";
 import { Save, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface Props {
   initialPlacements: Record<
@@ -39,6 +40,7 @@ export function GroupSimulatorClient({
   initialThirdPlaces,
   teamPointsMap,
 }: Props) {
+  const t = useTranslations("Groups");
   const store = useGroupSimulatorStore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -80,7 +82,6 @@ export function GroupSimulatorClient({
 
   const handleSave = useCallback(async () => {
     try {
-      // Save group placements
       const data = GROUP_LETTERS.map((letter) => ({
         groupLetter: letter,
         teams: store.placements[letter].map((t) => ({
@@ -91,7 +92,6 @@ export function GroupSimulatorClient({
 
       await saveGroupPredictions(data);
 
-      // Save score predictions
       const allScores = GROUP_LETTERS.flatMap((letter) =>
         store.scores[letter]
           .filter((s) => s.homeScore !== null && s.awayScore !== null)
@@ -107,17 +107,16 @@ export function GroupSimulatorClient({
       }
 
       store.markClean();
-      toast.success("Group predictions saved!");
+      toast.success(t("groupSaved"));
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to save predictions"
       );
     }
-  }, [store]);
+  }, [store, t]);
 
   return (
     <div className="space-y-6">
-      {/* Group selector tabs */}
       <div className="relative flex items-center gap-1">
         {(canScrollLeft || canScrollRight) && (
           <Button
@@ -126,7 +125,7 @@ export function GroupSimulatorClient({
             className="shrink-0 h-8 w-8"
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
-            aria-label="Scroll left"
+            aria-label={t("scrollLeft")}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -144,7 +143,7 @@ export function GroupSimulatorClient({
               className="shrink-0"
               onClick={() => store.setActiveGroup(letter)}
             >
-              Group {letter}
+              {t("group", { letter })}
             </Button>
           ))}
         </div>
@@ -156,7 +155,7 @@ export function GroupSimulatorClient({
             className="shrink-0 h-8 w-8"
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
-            aria-label="Scroll right"
+            aria-label={t("scrollRight")}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -164,10 +163,9 @@ export function GroupSimulatorClient({
       </div>
 
       {!store.isInitialized ? (
-        <div className="text-muted-foreground">Loading...</div>
+        <div className="text-muted-foreground">{t("loading")}</div>
       ) : (
       <>
-      {/* View toggle */}
       <Tabs
         value={store.activeView}
         onValueChange={(v) =>
@@ -175,9 +173,9 @@ export function GroupSimulatorClient({
         }
       >
         <TabsList>
-          <TabsTrigger value="placements">Placements</TabsTrigger>
-          <TabsTrigger value="scores">Score Simulator</TabsTrigger>
-          <TabsTrigger value="split">Split View</TabsTrigger>
+          <TabsTrigger value="placements">{t("placements")}</TabsTrigger>
+          <TabsTrigger value="scores">{t("scoreSimulator")}</TabsTrigger>
+          <TabsTrigger value="split">{t("splitView")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="placements">
@@ -209,7 +207,7 @@ export function GroupSimulatorClient({
                 store.computedStandings[store.activeGroup].length === 0
               }
             >
-              Sync standings to placements
+              {t("syncToPlacement")}
             </Button>
           </div>
         </TabsContent>
@@ -218,7 +216,7 @@ export function GroupSimulatorClient({
           <div className="grid gap-6 lg:grid-cols-2">
             <div>
               <h3 className="mb-2 text-sm font-medium text-muted-foreground">
-                Your Placements (Drag to reorder)
+                {t("yourPlacements")}
               </h3>
               <PlacementsTable
                 group={store.activeGroup}
@@ -231,7 +229,7 @@ export function GroupSimulatorClient({
             </div>
             <div>
               <h3 className="mb-2 text-sm font-medium text-muted-foreground">
-                Score Simulator
+                {t("scoreSimulator")}
               </h3>
               <ScoresTable
                 group={store.activeGroup}
@@ -251,26 +249,25 @@ export function GroupSimulatorClient({
                   store.computedStandings[store.activeGroup].length === 0
                 }
               >
-                Sync to placements
+                {t("syncToPlacementShort")}
               </Button>
             </div>
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Save button */}
       <div className="sticky bottom-4 flex items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
         <Button onClick={handleSave} disabled={!store.isDirty} className="gap-2">
           <Save className="h-4 w-4" />
-          Save All Group Predictions
+          {t("saveAll")}
         </Button>
         {store.isDirty ? (
           <span className="flex items-center gap-1.5 text-sm font-medium text-third-foreground">
             <span className="h-2 w-2 animate-pulse rounded-full bg-third" />
-            Unsaved changes
+            {t("unsavedChanges")}
           </span>
         ) : (
-          <span className="text-sm text-muted-foreground">All changes saved</span>
+          <span className="text-sm text-muted-foreground">{t("allSaved")}</span>
         )}
       </div>
       </>

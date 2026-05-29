@@ -6,9 +6,11 @@ import { ScoringGuide } from "@/components/scoring-guide";
 import { POINTS as GROUP_POINTS } from "@/lib/scoring/group-scoring";
 import { Volleyball } from "lucide-react";
 import type { GroupLetter } from "@/lib/stores/group-simulator-store";
+import { getTranslations } from "next-intl/server";
 
 export default async function GroupsPage() {
   const user = await requireUser();
+  const t = await getTranslations("Groups");
 
   const [teamsByGroup, predictions, scorePredictions, scoreBreakdown] = await Promise.all([
     getTeamsByGroup(),
@@ -23,14 +25,12 @@ export default async function GroupsPage() {
     if (teamId) teamPointsMap[teamId] = (teamPointsMap[teamId] ?? 0) + row.points;
   }
 
-  // Fetch all group matches
   const groupLetters: GroupLetter[] = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
   const allGroupMatches: Record<string, Awaited<ReturnType<typeof getGroupMatches>>> = {};
   for (const letter of groupLetters) {
     allGroupMatches[letter] = await getGroupMatches(letter);
   }
 
-  // Build initial placements from predictions or default order
   const initialPlacements: Record<string, { teamId: string; teamName: string; position: number }[]> = {};
   const initialScores: Record<string, { matchId: string; homeTeamId: string; awayTeamId: string; homeScore: number | null; awayScore: number | null }[]> = {};
 
@@ -39,7 +39,6 @@ export default async function GroupsPage() {
     const groupPreds = predictions.filter((p) => p.groupLetter === letter);
 
     if (groupPreds.length === 4) {
-      // Use existing predictions
       initialPlacements[letter] = groupPreds
         .sort((a, b) => a.predictedPosition - b.predictedPosition)
         .map((p) => ({
@@ -48,7 +47,6 @@ export default async function GroupsPage() {
           position: p.predictedPosition,
         }));
     } else {
-      // Default order
       initialPlacements[letter] = groupTeams.map((t, i) => ({
         teamId: t.id,
         teamName: t.name,
@@ -56,7 +54,6 @@ export default async function GroupsPage() {
       }));
     }
 
-    // Build match scores
     const groupMatches = allGroupMatches[letter] || [];
     initialScores[letter] = groupMatches.map((m) => {
       const existingScore = scorePredictions.find((sp) => sp.matchId === m.id);
@@ -78,14 +75,14 @@ export default async function GroupsPage() {
     <div className="space-y-6">
       <PageHeader
         icon={Volleyball}
-        title="Group Stage Predictions"
-        description="Drag and drop teams to predict the final standings for each group"
+        title={t("title")}
+        description={t("description")}
       />
 
       <ScoringGuide
         items={[
-          { label: "Exact position", points: GROUP_POINTS.EXACT_POSITION },
-          { label: "Top-2 advance", points: GROUP_POINTS.CORRECT_ADVANCE },
+          { label: t("exactPosition"), points: GROUP_POINTS.EXACT_POSITION },
+          { label: t("topTwoAdvance"), points: GROUP_POINTS.CORRECT_ADVANCE },
         ]}
       />
 

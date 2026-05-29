@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Menu, Trophy } from "lucide-react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LocaleToggle } from "@/components/locale-toggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface AppShellProps {
   user: {
@@ -18,12 +20,10 @@ interface AppShellProps {
 }
 
 export function AppShell({ user, children }: AppShellProps) {
-  // Mobile: slide-over drawer (closed by default).
+  const t = useTranslations("Sidebar");
   const [mobileOpen, setMobileOpen] = useState(false);
-  // Desktop: collapse the static sidebar entirely.
   const [collapsed, setCollapsed] = useState(false);
 
-  // One toggle, right behavior per breakpoint (evaluated on click, client-only).
   const toggleSidebar = () => {
     if (
       typeof window !== "undefined" &&
@@ -37,7 +37,6 @@ export function AppShell({ user, children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen">
-      {/* Mobile backdrop */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -59,7 +58,7 @@ export function AppShell({ user, children }: AppShellProps) {
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Toggle sidebar"
+            aria-label={t("toggleSidebar")}
             onClick={toggleSidebar}
           >
             <Menu className="h-5 w-5" />
@@ -80,7 +79,8 @@ export function AppShell({ user, children }: AppShellProps) {
             </span>
           </Link>
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
+            <LocaleToggle />
             <ThemeToggle />
           </div>
         </header>

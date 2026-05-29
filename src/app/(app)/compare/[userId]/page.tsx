@@ -11,7 +11,6 @@ import { notFound } from "next/navigation";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -19,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TeamFlag } from "@/components/team-badge";
 import { ListChecks, Volleyball } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 export default async function ComparePage({
   params,
@@ -27,6 +27,7 @@ export default async function ComparePage({
 }) {
   const { userId: compareUserId } = await params;
   const currentUser = await requireUser();
+  const t = await getTranslations("Compare");
 
   const profile = await db
     .select()
@@ -67,21 +68,20 @@ export default async function ComparePage({
         </Avatar>
         <div>
           <h1 className="font-heading text-3xl font-bold uppercase tracking-wide sm:text-4xl">
-            {profile[0].displayName}&apos;s Predictions
+            {t("predictions", { name: profile[0].displayName })}
           </h1>
           <p className="text-muted-foreground">
-            Viewing predictions and scores
+            {t("viewingPredictions")}
           </p>
         </div>
       </div>
 
-      {/* Score breakdown */}
       {scoreBreakdown.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ListChecks className="h-5 w-5 text-primary" />
-              Score Breakdown
+              {t("scoreBreakdown")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -105,12 +105,11 @@ export default async function ComparePage({
         </Card>
       )}
 
-      {/* Group predictions */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Volleyball className="h-5 w-5 text-chart-3" />
-            Group Predictions
+            {t("groupPredictions")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -119,7 +118,7 @@ export default async function ComparePage({
               .sort()
               .map(([group, preds]) => (
                 <div key={group} className="rounded-lg border p-3">
-                  <h4 className="mb-2 font-semibold">Group {group}</h4>
+                  <h4 className="mb-2 font-semibold">{t("group", { letter: group })}</h4>
                   {preds
                     .sort((a, b) => a.position - b.position)
                     .map((pred) => (

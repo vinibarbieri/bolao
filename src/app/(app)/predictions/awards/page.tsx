@@ -4,9 +4,12 @@ import { AwardsPredictionClient } from "./awards-client";
 import { PageHeader } from "@/components/page-header";
 import { AWARD_POINTS } from "@/lib/scoring/award-scoring";
 import { Award } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 export default async function AwardsPage() {
   const user = await requireUser();
+  const t = await getTranslations("Awards");
+
   const [predictions, players, scoreBreakdown] = await Promise.all([
     getUserAwardPredictions(user.id),
     getAllPlayers(),
@@ -22,8 +25,8 @@ export default async function AwardsPage() {
     <div className="space-y-6">
       <PageHeader
         icon={Award}
-        title="Award Predictions"
-        description="Predict the individual award winners"
+        title={t("title")}
+        description={t("description")}
       />
 
       <AwardsPredictionClient

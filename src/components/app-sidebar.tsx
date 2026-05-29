@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface AppSidebarProps {
   user: {
@@ -27,26 +28,11 @@ interface AppSidebarProps {
     name: string;
     avatar?: string;
   };
-  /** Mobile drawer open state. */
   mobileOpen?: boolean;
-  /** Desktop collapsed (hidden) state. */
   collapsed?: boolean;
-  /** Called when a nav link is clicked (used to close the mobile drawer). */
   onNavigate?: () => void;
-  /** Called by the desktop collapse button. */
   onCollapse?: () => void;
 }
-
-const navItems: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/groups", label: "Groups", icon: Volleyball },
-  { href: "/third-place", label: "3rd Place", icon: Medal },
-  { href: "/bracket", label: "Bracket", icon: Trophy },
-  { href: "/predictions/awards", label: "Awards", icon: Award },
-  { href: "/predictions/trio", label: "Golden Trio", icon: Star },
-  { href: "/leagues", label: "Leagues", icon: Users },
-  { href: "/admin", label: "Admin", icon: Settings },
-];
 
 export function AppSidebar({
   user,
@@ -55,8 +41,20 @@ export function AppSidebar({
   onNavigate,
   onCollapse,
 }: AppSidebarProps) {
+  const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const router = useRouter();
+
+  const navItems: { href: string; label: string; icon: LucideIcon }[] = [
+    { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
+    { href: "/groups", label: t("groups"), icon: Volleyball },
+    { href: "/third-place", label: t("thirdPlace"), icon: Medal },
+    { href: "/bracket", label: t("bracket"), icon: Trophy },
+    { href: "/predictions/awards", label: t("awards"), icon: Award },
+    { href: "/predictions/trio", label: t("goldenTrio"), icon: Star },
+    { href: "/leagues", label: t("leagues"), icon: Users },
+    { href: "/admin", label: t("admin"), icon: Settings },
+  ];
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -86,14 +84,14 @@ export function AppSidebar({
               Bolão
             </span>
             <span className="text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
-              World Cup 2026
+              {t("worldCup")}
             </span>
           </span>
         </Link>
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Collapse sidebar"
+          aria-label={t("collapseSidebar")}
           className="hidden lg:inline-flex"
           onClick={onCollapse}
         >
@@ -136,7 +134,7 @@ export function AppSidebar({
             href="/settings"
             onClick={onNavigate}
             className="flex min-w-0 flex-1 items-center gap-3"
-            aria-label="Profile settings"
+            aria-label={t("profileSettings")}
           >
             <Avatar className="h-9 w-9 ring-2 ring-sidebar-border">
               <AvatarImage src={user.avatar} />
@@ -154,7 +152,7 @@ export function AppSidebar({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Sign out"
+            aria-label={t("signOut")}
             onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4" />
