@@ -3,7 +3,9 @@ import { awardPredictions, actualAwards, goldenTrio } from "@/db/schema/predicti
 import { matches } from "@/db/schema/matches";
 import { eq, and, isNotNull } from "drizzle-orm";
 
-const AWARD_POINTS: Record<string, number> = {
+export const TRIO_MOTM_POINTS = 2;
+
+export const AWARD_POINTS: Record<string, number> = {
   golden_boot: 10,
   golden_glove: 5,
   top_assist: 5,
@@ -82,8 +84,8 @@ export async function calculateTrioScores(userId: string) {
         userId,
         category: "golden_trio",
         subDetail: `Slot ${pick.slot}`,
-        points: count * 2,
-        description: `Golden Trio pick won ${count} MOTM award${count > 1 ? "s" : ""} (${count * 2} pts)`,
+        points: count * TRIO_MOTM_POINTS,
+        description: `Golden Trio pick won ${count} MOTM award${count > 1 ? "s" : ""} (${count * TRIO_MOTM_POINTS} pts)`,
       });
     }
   }

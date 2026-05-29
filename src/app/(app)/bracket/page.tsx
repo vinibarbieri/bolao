@@ -9,6 +9,7 @@ import { BracketBuilderClient } from "@/components/bracket/bracket-builder-clien
 import { getThirdPlaceAssignments, type GroupLetter } from "@/lib/tournament/third-place-lookup";
 import { resolveR32Matchups } from "@/lib/tournament/bracket-mapping";
 import { PageHeader } from "@/components/page-header";
+import { POINTS as KNOCKOUT_POINTS } from "@/lib/scoring/knockout-scoring";
 import { Trophy, AlertTriangle } from "lucide-react";
 
 export default async function BracketPage() {
@@ -112,6 +113,7 @@ export default async function BracketPage() {
           existingPicks={existingPicks}
           resolvedMatchups={resolvedMatchups}
           knockoutRoundPoints={knockoutRoundPoints}
+          knockoutPointsConfig={KNOCKOUT_POINTS}
         />
       )}
     </div>

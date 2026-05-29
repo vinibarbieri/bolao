@@ -3,6 +3,7 @@ import { getUserGoldenTrio, getAllPlayers, getUserScoreBreakdown } from "../../q
 import { GoldenTrioClient } from "./trio-client";
 import { PageHeader } from "@/components/page-header";
 import { ScoringGuide } from "@/components/scoring-guide";
+import { TRIO_MOTM_POINTS } from "@/lib/scoring/award-scoring";
 import { Star } from "lucide-react";
 
 export default async function GoldenTrioPage() {
@@ -27,7 +28,7 @@ export default async function GoldenTrioPage() {
         description="Pick 3 players you think will be the greatest of the tournament"
       />
 
-      <ScoringGuide items={[{ label: "Per MOTM award won by your pick", points: 1 }]} />
+      <ScoringGuide items={[{ label: "Per MOTM award won by your pick", points: TRIO_MOTM_POINTS }]} />
 
       <GoldenTrioClient existingTrio={trio} players={players} slotPoints={trioSlotPoints} />
     </div>

@@ -3,6 +3,7 @@ import { getUserGroupPredictions, getTeamsByGroup, getUserScoreBreakdown } from 
 import { ThirdPlaceSelectorClient } from "@/components/third-place/third-place-selector-client";
 import { PageHeader } from "@/components/page-header";
 import { ScoringGuide } from "@/components/scoring-guide";
+import { POINTS as GROUP_POINTS } from "@/lib/scoring/group-scoring";
 import { Medal, AlertTriangle } from "lucide-react";
 
 export default async function ThirdPlacePage() {
@@ -45,7 +46,7 @@ export default async function ThirdPlacePage() {
         description="Select exactly 8 of the 12 third-place teams you think will qualify for the Round of 32"
       />
 
-      <ScoringGuide items={[{ label: "Each correct qualifier", points: 2 }]} />
+      <ScoringGuide items={[{ label: "Each correct qualifier", points: GROUP_POINTS.CORRECT_THIRD_QUALIFIES }]} />
 
       {!hasAllGroups ? (
         <div className="flex items-start gap-3 rounded-xl border border-third/50 bg-third/10 p-6">

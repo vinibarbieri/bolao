@@ -4,7 +4,7 @@ import { groupStandings } from "@/db/schema/teams";
 import { userScores } from "@/db/schema/scores";
 import { eq } from "drizzle-orm";
 
-const POINTS = {
+export const POINTS = {
   EXACT_POSITION: 3,
   CORRECT_ADVANCE: 2,
   CORRECT_THIRD_QUALIFIES: 2,

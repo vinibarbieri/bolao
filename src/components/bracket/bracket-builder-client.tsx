@@ -16,6 +16,7 @@ interface Props {
   existingPicks: Record<number, BracketTeam>;
   resolvedMatchups: R32Matchup[];
   knockoutRoundPoints?: Record<string, number>;
+  knockoutPointsConfig?: Record<string, number>;
 }
 
 const ROUND_LABELS: Record<string, string> = {
@@ -44,7 +45,7 @@ function sourceString(source: { type: string; group: string }): string {
   return `${positionMap[source.type] ?? "?"}${source.group}`;
 }
 
-export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups, knockoutRoundPoints = {} }: Props) {
+export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups, knockoutRoundPoints = {}, knockoutPointsConfig = {} }: Props) {
   const store = useBracketStore();
   const [saving, setSaving] = useState(false);
   const hasInitialized = useRef(false);
@@ -211,13 +212,13 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           <BracketColumn label={ROUND_LABELS.r32}>
             {LEFT.r32.map((s) => renderSlotCard(s))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.r16} scoringPoints={3}>
+          <BracketColumn label={ROUND_LABELS.r16} scoringPoints={knockoutPointsConfig.r16}>
             {LEFT.r16.map((s) => renderSlotCard(s))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.qf} scoringPoints={5}>
+          <BracketColumn label={ROUND_LABELS.qf} scoringPoints={knockoutPointsConfig.qf}>
             {LEFT.qf.map((s) => renderSlotCard(s))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.sf} scoringPoints={8}>
+          <BracketColumn label={ROUND_LABELS.sf} scoringPoints={knockoutPointsConfig.sf}>
             {LEFT.sf.map((s) => renderSlotCard(s))}
           </BracketColumn>
 
@@ -225,7 +226,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           <div className="flex min-w-[220px] flex-col items-center justify-center gap-4">
             {/* Champion (above the final) */}
             <div className="flex flex-col items-center gap-2">
-              <RoundHeading className="mb-0 text-gold-foreground" scoringPoints={30}>
+              <RoundHeading className="mb-0 text-gold-foreground" scoringPoints={knockoutPointsConfig.champion}>
                 Champion
               </RoundHeading>
               <span className="bg-brand-gradient flex h-14 w-14 items-center justify-center rounded-2xl text-brand-foreground shadow-md">
@@ -248,7 +249,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
             {/* Final */}
             <div className="w-full">
-              <RoundHeading className="text-center" scoringPoints={15}>
+              <RoundHeading className="text-center" scoringPoints={knockoutPointsConfig.final}>
                 {ROUND_LABELS.final}
               </RoundHeading>
               {renderSlotCard(32)}
@@ -256,7 +257,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
             {/* 3rd place (below the final) */}
             <div className="w-full">
-              <RoundHeading className="text-center" scoringPoints={5}>
+              <RoundHeading className="text-center" scoringPoints={knockoutPointsConfig.third}>
                 {ROUND_LABELS.third}
               </RoundHeading>
               {renderSlotCard(31)}
@@ -264,13 +265,13 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           </div>
 
           {/* RIGHT HALF (mirrored) */}
-          <BracketColumn label={ROUND_LABELS.sf} align="right" scoringPoints={8}>
+          <BracketColumn label={ROUND_LABELS.sf} align="right" scoringPoints={knockoutPointsConfig.sf}>
             {RIGHT.sf.map((s) => renderSlotCard(s, true))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.qf} align="right" scoringPoints={5}>
+          <BracketColumn label={ROUND_LABELS.qf} align="right" scoringPoints={knockoutPointsConfig.qf}>
             {RIGHT.qf.map((s) => renderSlotCard(s, true))}
           </BracketColumn>
-          <BracketColumn label={ROUND_LABELS.r16} align="right" scoringPoints={3}>
+          <BracketColumn label={ROUND_LABELS.r16} align="right" scoringPoints={knockoutPointsConfig.r16}>
             {RIGHT.r16.map((s) => renderSlotCard(s, true))}
           </BracketColumn>
           <BracketColumn label={ROUND_LABELS.r32} align="right">

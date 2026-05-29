@@ -30,35 +30,30 @@ const AWARD_TYPES: {
   label: string;
   description: string;
   icon: LucideIcon;
-  points: number;
 }[] = [
   {
     type: "golden_boot",
     label: "Golden Boot",
     description: "Top scorer of the tournament",
     icon: Goal,
-    points: 10,
   },
   {
     type: "golden_glove",
     label: "Golden Glove",
     description: "Best goalkeeper of the tournament",
     icon: Shield,
-    points: 5,
   },
   {
     type: "top_assist",
     label: "Top Assists",
     description: "Most assists in the tournament",
     icon: Handshake,
-    points: 5,
   },
   {
     type: "goal_of_tournament",
     label: "Goal of the Tournament",
     description: "Scorer of the best goal of the tournament",
     icon: Sparkles,
-    points: 5,
   },
 ];
 
@@ -79,10 +74,12 @@ export function AwardsPredictionClient({
   existingPredictions,
   players,
   earnedPointsMap = {},
+  awardPointsConfig = {},
 }: {
   existingPredictions: Prediction[];
   players: Player[];
   earnedPointsMap?: Record<string, number>;
+  awardPointsConfig?: Record<string, number>;
 }) {
   const predMap = useMemo(() => {
     const map: Record<string, Prediction> = {};
@@ -164,7 +161,7 @@ export function AwardsPredictionClient({
                     <div className="flex items-center gap-2">
                       <CardTitle className="text-lg">{award.label}</CardTitle>
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary">
-                        +{award.points}
+                        +{awardPointsConfig[award.type] ?? 0}
                       </span>
                     </div>
                     <CardDescription>{award.description}</CardDescription>

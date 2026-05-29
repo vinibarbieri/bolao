@@ -3,7 +3,7 @@ import { knockoutPredictions } from "@/db/schema/predictions";
 import { matches } from "@/db/schema/matches";
 import { eq, and, ne } from "drizzle-orm";
 
-const POINTS: Record<string, number> = {
+export const POINTS: Record<string, number> = {
   r16: 5,
   qf: 8,
   sf: 15,

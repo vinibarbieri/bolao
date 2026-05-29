@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/supabase/auth";
 import { getUserAwardPredictions, getAllPlayers, getUserScoreBreakdown } from "../../queries";
 import { AwardsPredictionClient } from "./awards-client";
 import { PageHeader } from "@/components/page-header";
+import { AWARD_POINTS } from "@/lib/scoring/award-scoring";
 import { Award } from "lucide-react";
 
 export default async function AwardsPage() {
@@ -29,6 +30,7 @@ export default async function AwardsPage() {
         existingPredictions={predictions}
         players={players}
         earnedPointsMap={awardPointsMap}
+        awardPointsConfig={AWARD_POINTS}
       />
     </div>
   );

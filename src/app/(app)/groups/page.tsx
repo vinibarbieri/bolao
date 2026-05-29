@@ -3,6 +3,7 @@ import { getTeamsByGroup, getUserGroupPredictions, getGroupMatches, getUserScore
 import { GroupSimulatorClient } from "@/components/group-simulator/group-simulator-client";
 import { PageHeader } from "@/components/page-header";
 import { ScoringGuide } from "@/components/scoring-guide";
+import { POINTS as GROUP_POINTS } from "@/lib/scoring/group-scoring";
 import { Volleyball } from "lucide-react";
 import type { GroupLetter } from "@/lib/stores/group-simulator-store";
 
@@ -83,8 +84,8 @@ export default async function GroupsPage() {
 
       <ScoringGuide
         items={[
-          { label: "Exact position", points: 3 },
-          { label: "Top-2 advance", points: 2 },
+          { label: "Exact position", points: GROUP_POINTS.EXACT_POSITION },
+          { label: "Top-2 advance", points: GROUP_POINTS.CORRECT_ADVANCE },
         ]}
       />
 
