@@ -16,6 +16,7 @@ import {
   RefreshCw,
   CalendarClock,
   Activity,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ export function AdminClient({
   userId: string;
 }) {
   const [locking, setLocking] = useState(false);
+  const [syncingPlayers, setSyncingPlayers] = useState(false);
 
   const handleLockPredictions = async () => {
     setLocking(true);
@@ -52,6 +54,27 @@ export function AdminClient({
       );
     } finally {
       setLocking(false);
+    }
+  };
+
+  const handleSyncPlayers = async () => {
+    setSyncingPlayers(true);
+    try {
+      const res = await fetch("/api/admin/sync-players", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to sync players");
+      toast.success(
+        `Players synced: ${data.inserted} new, ${data.updated} updated`,
+      );
+      if (data.unmatchedTeams?.length) {
+        toast.warning(`Unmatched teams: ${data.unmatchedTeams.join(", ")}`);
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to sync players",
+      );
+    } finally {
+      setSyncingPlayers(false);
     }
   };
 
@@ -174,6 +197,29 @@ export function AdminClient({
             >
               <RefreshCw className="h-4 w-4" />
               Recalculate All
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Users className="h-5 w-5 text-chart-4" />
+              Sync Players
+            </CardTitle>
+            <CardDescription>
+              Import World Cup squads for awards &amp; golden trio
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={handleSyncPlayers}
+              disabled={syncingPlayers}
+              variant="secondary"
+              className="w-full gap-2"
+            >
+              <Users className="h-4 w-4" />
+              {syncingPlayers ? "Syncing..." : "Sync Players"}
             </Button>
           </CardContent>
         </Card>

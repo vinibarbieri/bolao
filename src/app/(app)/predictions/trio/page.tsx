@@ -16,7 +16,7 @@ export default async function GoldenTrioPage() {
       <PageHeader
         icon={Star}
         title="Golden Trio"
-        description="Pick 3 players you think will be the top scorers of the tournament"
+        description="Pick 3 players you think will be the greatest of the tournament"
       />
 
       <GoldenTrioClient existingTrio={trio} players={players} />

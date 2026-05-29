@@ -263,7 +263,6 @@ export async function saveAwardPredictions(
   data: {
     awardType: "golden_boot" | "golden_glove" | "top_assist" | "goal_of_tournament";
     playerId?: string;
-    description?: string;
   }[]
 ) {
   const userId = await getAuthUserId();
@@ -275,12 +274,11 @@ export async function saveAwardPredictions(
       .where(eq(awardPredictions.userId, userId));
 
     const rows = data
-      .filter((d) => d.playerId || d.description)
+      .filter((d) => d.playerId)
       .map((d) => ({
         userId,
         awardType: d.awardType,
         playerId: d.playerId ?? null,
-        description: d.description ?? null,
       }));
 
     if (rows.length > 0) {

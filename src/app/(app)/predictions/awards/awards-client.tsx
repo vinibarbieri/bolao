@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { saveAwardPredictions } from "@/app/(app)/actions";
 import { TeamFlag } from "@/components/team-badge";
 import { cn } from "@/lib/utils";
@@ -30,35 +29,30 @@ const AWARD_TYPES: {
   type: "golden_boot" | "golden_glove" | "top_assist" | "goal_of_tournament";
   label: string;
   description: string;
-  needsPlayer: boolean;
   icon: LucideIcon;
 }[] = [
   {
     type: "golden_boot",
     label: "Golden Boot",
     description: "Top scorer of the tournament",
-    needsPlayer: true,
     icon: Goal,
   },
   {
     type: "golden_glove",
     label: "Golden Glove",
     description: "Best goalkeeper of the tournament",
-    needsPlayer: true,
     icon: Shield,
   },
   {
     type: "top_assist",
     label: "Top Assists",
     description: "Most assists in the tournament",
-    needsPlayer: true,
     icon: Handshake,
   },
   {
     type: "goal_of_tournament",
     label: "Goal of the Tournament",
-    description: "Best goal scored in the tournament",
-    needsPlayer: false,
+    description: "Scorer of the best goal of the tournament",
     icon: Sparkles,
   },
 ];
@@ -92,14 +86,13 @@ export function AwardsPredictionClient({
   }, [existingPredictions]);
 
   const [selections, setSelections] = useState<
-    Record<string, { playerId?: string; description?: string; search?: string }>
+    Record<string, { playerId?: string; search?: string }>
   >(() => {
-    const initial: Record<string, { playerId?: string; description?: string; search?: string }> = {};
+    const initial: Record<string, { playerId?: string; search?: string }> = {};
     for (const award of AWARD_TYPES) {
       const existing = predMap[award.type];
       initial[award.type] = {
         playerId: existing?.playerId ?? undefined,
-        description: existing?.description ?? undefined,
         search: existing?.playerId
           ? players.find((p) => p.id === existing.playerId)?.name ?? ""
           : "",
@@ -116,7 +109,6 @@ export function AwardsPredictionClient({
       const data = AWARD_TYPES.map((award) => ({
         awardType: award.type,
         playerId: selections[award.type]?.playerId,
-        description: selections[award.type]?.description,
       }));
 
       await saveAwardPredictions(data);
@@ -139,7 +131,7 @@ export function AwardsPredictionClient({
           const chosen = sel?.playerId
             ? players.find((p) => p.id === sel.playerId)
             : null;
-          const filled = award.needsPlayer ? !!chosen : !!sel?.description?.trim();
+          const filled = !!chosen;
 
           return (
             <Card
@@ -171,84 +163,65 @@ export function AwardsPredictionClient({
                 </div>
               </CardHeader>
               <CardContent>
-                {award.needsPlayer ? (
-                  <div className="space-y-2">
-                    <Label>Player</Label>
-                    {chosen && (
-                      <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
-                        <TeamFlag teamId={chosen.teamId} size="md" />
-                        <span className="font-medium">{chosen.name}</span>
-                        <span className="text-muted-foreground">
-                          {chosen.position}
-                        </span>
-                      </div>
-                    )}
-                    <Input
-                      placeholder="Search for a player..."
-                      value={sel?.search ?? ""}
-                      onChange={(e) => {
-                        setSelections((prev) => ({
-                          ...prev,
-                          [award.type]: {
-                            ...prev[award.type],
-                            search: e.target.value,
-                            playerId: undefined,
-                          },
-                        }));
-                      }}
-                    />
-                    {sel?.search && !sel?.playerId && (
-                      <div className="max-h-40 overflow-y-auto rounded-lg border">
-                        {players
-                          .filter((p) =>
-                            p.name
-                              .toLowerCase()
-                              .includes((sel?.search ?? "").toLowerCase()),
-                          )
-                          .slice(0, 10)
-                          .map((player) => (
-                            <button
-                              key={player.id}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted"
-                              onClick={() => {
-                                setSelections((prev) => ({
-                                  ...prev,
-                                  [award.type]: {
-                                    ...prev[award.type],
-                                    playerId: player.id,
-                                    search: player.name,
-                                  },
-                                }));
-                              }}
-                            >
-                              <TeamFlag teamId={player.teamId} size="sm" />
-                              <span className="font-medium">{player.name}</span>
-                              <span className="text-muted-foreground">
-                                {player.position}
-                              </span>
-                            </button>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea
-                      placeholder="Describe the goal..."
-                      value={sel?.description ?? ""}
-                      onChange={(e) => {
-                        setSelections((prev) => ({
-                          ...prev,
-                          [award.type]: {
-                            ...prev[award.type],
-                            description: e.target.value,
-                          },
-                        }));
-                      }}
-                    />
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label>Player</Label>
+                  {chosen && (
+                    <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+                      <TeamFlag teamId={chosen.teamId} size="md" />
+                      <span className="font-medium">{chosen.name}</span>
+                      <span className="text-muted-foreground">
+                        {chosen.position}
+                      </span>
+                    </div>
+                  )}
+                  <Input
+                    placeholder="Search for a player..."
+                    value={sel?.search ?? ""}
+                    onChange={(e) => {
+                      setSelections((prev) => ({
+                        ...prev,
+                        [award.type]: {
+                          ...prev[award.type],
+                          search: e.target.value,
+                          playerId: undefined,
+                        },
+                      }));
+                    }}
+                  />
+                  {sel?.search && !sel?.playerId && (
+                    <div className="max-h-40 overflow-y-auto rounded-lg border">
+                      {players
+                        .filter((p) =>
+                          p.name
+                            .toLowerCase()
+                            .includes((sel?.search ?? "").toLowerCase()),
+                        )
+                        .slice(0, 10)
+                        .map((player) => (
+                          <button
+                            key={player.id}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted"
+                            onClick={() => {
+                              setSelections((prev) => ({
+                                ...prev,
+                                [award.type]: {
+                                  ...prev[award.type],
+                                  playerId: player.id,
+                                  search: player.name,
+                                },
+                              }));
+                            }}
+                          >
+                            <TeamFlag teamId={player.teamId} size="sm" />
+                            <span className="font-medium">{player.name}</span>
+                            <span className="text-muted-foreground">
+                              {player.position}
+                            </span>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           );
