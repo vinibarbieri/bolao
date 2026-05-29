@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { TeamFlag } from "@/components/team-badge";
+import { ListChecks, Volleyball } from "lucide-react";
 
 export default async function ComparePage({
   params,
@@ -57,14 +59,14 @@ export default async function ComparePage({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Avatar className="h-12 w-12">
+        <Avatar className="h-12 w-12 ring-2 ring-border">
           <AvatarImage src={profile[0].avatarUrl ?? undefined} />
-          <AvatarFallback>
+          <AvatarFallback className="bg-brand-gradient font-bold text-brand-foreground">
             {profile[0].displayName.charAt(0)}
           </AvatarFallback>
         </Avatar>
         <div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="font-heading text-3xl font-bold uppercase tracking-wide sm:text-4xl">
             {profile[0].displayName}&apos;s Predictions
           </h1>
           <p className="text-muted-foreground">
@@ -77,7 +79,10 @@ export default async function ComparePage({
       {scoreBreakdown.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Score Breakdown</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-primary" />
+              Score Breakdown
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -103,14 +108,17 @@ export default async function ComparePage({
       {/* Group predictions */}
       <Card>
         <CardHeader>
-          <CardTitle>Group Predictions</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Volleyball className="h-5 w-5 text-chart-3" />
+            Group Predictions
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Object.entries(groupPredsByGroup)
               .sort()
               .map(([group, preds]) => (
-                <div key={group} className="rounded-md border p-3">
+                <div key={group} className="rounded-lg border p-3">
                   <h4 className="mb-2 font-semibold">Group {group}</h4>
                   {preds
                     .sort((a, b) => a.position - b.position)
@@ -122,7 +130,8 @@ export default async function ComparePage({
                         <Badge variant="outline" className="w-6 justify-center">
                           {pred.position}
                         </Badge>
-                        <span className="text-sm">{pred.teamId}</span>
+                        <TeamFlag teamId={pred.teamId} size="sm" />
+                        <span className="text-sm font-medium">{pred.teamId}</span>
                       </div>
                     ))}
                 </div>

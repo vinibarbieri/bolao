@@ -10,6 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TeamFlag, TeamBadge } from "@/components/team-badge";
+import { cn } from "@/lib/utils";
 import type {
   MatchScore,
   ComputedStanding,
@@ -55,10 +57,13 @@ export function ScoresTable({
               {scores.map((match) => (
                 <div
                   key={match.matchId}
-                  className="flex items-center gap-2 rounded-md border p-2"
+                  className="flex items-center gap-2 rounded-lg border bg-background p-2 transition-colors hover:bg-muted/40"
                 >
-                  <span className="flex-1 text-right text-sm font-medium">
-                    {teamNames.get(match.homeTeamId) ?? match.homeTeamId}
+                  <span className="flex flex-1 items-center justify-end gap-2 text-sm font-medium">
+                    <span className="truncate text-right">
+                      {teamNames.get(match.homeTeamId) ?? match.homeTeamId}
+                    </span>
+                    <TeamFlag teamId={match.homeTeamId} size="md" />
                   </span>
                   <Input
                     type="number"
@@ -93,8 +98,11 @@ export function ScoresTable({
                     }}
                     placeholder="-"
                   />
-                  <span className="flex-1 text-sm font-medium">
-                    {teamNames.get(match.awayTeamId) ?? match.awayTeamId}
+                  <span className="flex flex-1 items-center gap-2 text-sm font-medium">
+                    <TeamFlag teamId={match.awayTeamId} size="md" />
+                    <span className="truncate">
+                      {teamNames.get(match.awayTeamId) ?? match.awayTeamId}
+                    </span>
                   </span>
                 </div>
               ))}
@@ -127,9 +135,30 @@ export function ScoresTable({
               </TableHeader>
               <TableBody>
                 {standings.map((row, i) => (
-                  <TableRow key={row.teamId}>
-                    <TableCell className="font-medium">{i + 1}</TableCell>
-                    <TableCell>{row.teamName}</TableCell>
+                  <TableRow
+                    key={row.teamId}
+                    className={cn(
+                      i < 2 && "bg-qualified/8",
+                      i === 2 && "bg-third/10",
+                    )}
+                  >
+                    <TableCell className="font-medium">
+                      <span
+                        className={cn(
+                          "inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold",
+                          i < 2
+                            ? "bg-qualified/20 text-qualified-foreground"
+                            : i === 2
+                              ? "bg-third/25 text-third-foreground"
+                              : "text-muted-foreground",
+                        )}
+                      >
+                        {i + 1}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <TeamBadge teamId={row.teamId} name={row.teamName} size="sm" />
+                    </TableCell>
                     <TableCell className="text-center">{row.played}</TableCell>
                     <TableCell className="text-center">{row.won}</TableCell>
                     <TableCell className="text-center">{row.drawn}</TableCell>

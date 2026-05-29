@@ -11,6 +11,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  Volleyball,
+  Medal,
+  Trophy,
+  Users,
+  Lock,
+  Check,
+  ArrowRight,
+  ListChecks,
+  type LucideIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -28,19 +40,53 @@ export default async function DashboardPage() {
   const hasBracket = bracketPicks.length > 0;
   const thirdPlaceSelected = groupPreds.filter((p) => p.advancesAsThird).length;
 
+  const steps = [
+    groupsCompleted === 12,
+    thirdPlaceSelected === 8,
+    hasBracket,
+    false, // awards
+    false, // trio
+    leagues.length > 0,
+  ];
+  const completedSteps = steps.filter(Boolean).length;
+  const progress = Math.round((completedSteps / steps.length) * 100);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to Bolao 2026 - World Cup Predictions
-        </p>
+      <div className="bg-brand-gradient relative overflow-hidden rounded-2xl p-6 text-brand-foreground shadow-lg">
+        <div className="relative z-10">
+          <p className="text-sm font-medium text-brand-foreground/75">
+            Welcome back, {user.user_metadata?.full_name?.split(" ")[0] ?? "player"} 👋
+          </p>
+          <h1 className="mt-1 font-heading text-4xl font-bold uppercase tracking-wide">
+            Bolão World Cup 2026
+          </h1>
+          <p className="mt-1 max-w-prose text-sm text-brand-foreground/80">
+            Make your predictions, build your bracket and climb your leagues.
+          </p>
+          {!isLocked && (
+            <div className="mt-4 max-w-sm">
+              <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-brand-foreground/90">
+                <span>Predictions progress</span>
+                <span>{completedSteps}/{steps.length} done</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-brand-foreground/20">
+                <div
+                  className="h-full rounded-full bg-brand-foreground transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+        <Trophy className="pointer-events-none absolute -right-6 -top-6 h-44 w-44 text-brand-foreground/10" />
       </div>
 
       {isLocked && (
-        <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-          <CardContent className="pt-6">
-            <p className="font-medium text-yellow-800 dark:text-yellow-200">
+        <Card className="border-third/50 bg-third/10">
+          <CardContent className="flex items-center gap-3 py-4">
+            <Lock className="h-5 w-5 text-third-foreground" />
+            <p className="font-medium text-third-foreground">
               Predictions are locked. The tournament has started!
             </p>
           </CardContent>
@@ -48,71 +94,55 @@ export default async function DashboardPage() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Groups Completed</CardDescription>
-            <CardTitle className="text-2xl">{groupsCompleted}/12</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href="/groups">
-              <Button variant="outline" size="sm">
-                {groupsCompleted === 12 ? "Review" : "Continue"}
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>3rd Place Selection</CardDescription>
-            <CardTitle className="text-2xl">{thirdPlaceSelected}/8</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href="/third-place">
-              <Button variant="outline" size="sm">
-                {thirdPlaceSelected === 8 ? "Review" : "Select"}
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Bracket</CardDescription>
-            <CardTitle className="text-2xl">
-              {hasBracket ? (
-                <Badge variant="default">Complete</Badge>
-              ) : (
-                <Badge variant="secondary">Pending</Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href="/bracket">
-              <Button variant="outline" size="sm">
-                {hasBracket ? "Review" : "Build"}
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Leagues</CardDescription>
-            <CardTitle className="text-2xl">{leagues.length}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href="/leagues">
-              <Button variant="outline" size="sm">Manage</Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={Volleyball}
+          label="Groups Completed"
+          value={`${groupsCompleted}/12`}
+          href="/groups"
+          cta={groupsCompleted === 12 ? "Review" : "Continue"}
+          tint="text-chart-3"
+        />
+        <StatCard
+          icon={Medal}
+          label="3rd Place Selection"
+          value={`${thirdPlaceSelected}/8`}
+          href="/third-place"
+          cta={thirdPlaceSelected === 8 ? "Review" : "Select"}
+          tint="text-third"
+        />
+        <StatCard
+          icon={Trophy}
+          label="Bracket"
+          value={
+            hasBracket ? (
+              <Badge className="bg-qualified/15 text-qualified-foreground">
+                Complete
+              </Badge>
+            ) : (
+              <Badge variant="secondary">Pending</Badge>
+            )
+          }
+          href="/bracket"
+          cta={hasBracket ? "Review" : "Build"}
+          tint="text-chart-1"
+        />
+        <StatCard
+          icon={Users}
+          label="Leagues"
+          value={leagues.length}
+          href="/leagues"
+          cta="Manage"
+          tint="text-chart-5"
+        />
       </div>
 
       {!isLocked && (
         <Card>
           <CardHeader>
-            <CardTitle>Prediction Checklist</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-primary" />
+              Prediction Checklist
+            </CardTitle>
             <CardDescription>
               Complete all steps before the tournament starts
             </CardDescription>
@@ -157,6 +187,42 @@ export default async function DashboardPage() {
   );
 }
 
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  href,
+  cta,
+  tint,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: React.ReactNode;
+  href: string;
+  cta: string;
+  tint: string;
+}) {
+  return (
+    <Card className="group transition-shadow hover:shadow-md">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardDescription>{label}</CardDescription>
+          <Icon className={cn("h-5 w-5", tint)} />
+        </div>
+        <CardTitle className="text-2xl">{value}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Link href={href}>
+          <Button variant="outline" size="sm" className="gap-1">
+            {cta}
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 function ChecklistItem({
   done,
   label,
@@ -167,21 +233,30 @@ function ChecklistItem({
   href: string;
 }) {
   return (
-    <li className="flex items-center gap-3">
-      <span
-        className={`flex h-6 w-6 items-center justify-center rounded-full text-sm ${
-          done
-            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-            : "bg-muted text-muted-foreground"
-        }`}
-      >
-        {done ? "✓" : "○"}
-      </span>
+    <li>
       <Link
         href={href}
-        className="text-sm hover:underline"
+        className="group flex items-center gap-3 rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-muted/60"
       >
-        {label}
+        <span
+          className={cn(
+            "flex h-6 w-6 items-center justify-center rounded-full text-sm transition-colors",
+            done
+              ? "bg-qualified/15 text-qualified-foreground"
+              : "border-2 border-dashed border-muted-foreground/30 text-muted-foreground",
+          )}
+        >
+          {done && <Check className="h-3.5 w-3.5" />}
+        </span>
+        <span
+          className={cn(
+            "flex-1 text-sm",
+            done && "text-muted-foreground line-through",
+          )}
+        >
+          {label}
+        </span>
+        <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
       </Link>
     </li>
   );

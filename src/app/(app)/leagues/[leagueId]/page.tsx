@@ -21,6 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Trophy, Crown, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default async function LeagueDetailPage({
   params,
@@ -45,20 +47,30 @@ export default async function LeagueDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">{league[0].name}</h1>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <span>Invite code:</span>
-          <Badge variant="outline" className="font-mono text-base">
-            {league[0].inviteCode}
-          </Badge>
+      <div className="flex items-center gap-3">
+        <span className="bg-brand-gradient flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-sm">
+          <Trophy className="h-6 w-6" />
+        </span>
+        <div>
+          <h1 className="font-heading text-3xl font-bold uppercase tracking-wide sm:text-4xl">
+            {league[0].name}
+          </h1>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <span className="text-sm">Invite code:</span>
+            <Badge variant="outline" className="font-mono text-sm">
+              {league[0].inviteCode}
+            </Badge>
+          </div>
         </div>
       </div>
 
       {/* Leaderboard */}
       <Card>
         <CardHeader>
-          <CardTitle>Leaderboard</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-gold" />
+            Leaderboard
+          </CardTitle>
           <CardDescription>{members.length} members</CardDescription>
         </CardHeader>
         <CardContent>
@@ -85,15 +97,20 @@ export default async function LeagueDetailPage({
                 {leaderboard.map((entry) => (
                   <TableRow key={entry.userId}>
                     <TableCell>
-                      <Badge
-                        variant={
+                      <span
+                        className={cn(
+                          "flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold",
                           entry.rank === 1
-                            ? "default"
-                            : "outline"
-                        }
+                            ? "bg-gold/25 text-gold-foreground"
+                            : entry.rank === 2
+                              ? "bg-muted-foreground/15 text-foreground"
+                              : entry.rank === 3
+                                ? "bg-third/20 text-third-foreground"
+                                : "text-muted-foreground",
+                        )}
                       >
                         {entry.rank}
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -106,7 +123,9 @@ export default async function LeagueDetailPage({
                         <span className="font-medium">
                           {entry.displayName}
                         </span>
-                        {entry.championCorrect && <span>🏆</span>}
+                        {entry.championCorrect && (
+                          <Crown className="h-4 w-4 text-gold" />
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -135,14 +154,17 @@ export default async function LeagueDetailPage({
       {/* Members list */}
       <Card>
         <CardHeader>
-          <CardTitle>Members</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            Members
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {members.map((member) => (
               <div
                 key={member.userId}
-                className="flex items-center gap-3 rounded-md border px-3 py-2"
+                className="flex items-center gap-3 rounded-lg border px-3 py-2"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={member.avatarUrl ?? undefined} />

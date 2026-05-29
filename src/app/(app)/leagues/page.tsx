@@ -1,6 +1,8 @@
 import { requireUser } from "@/lib/supabase/auth";
 import { getUserLeagues } from "../queries";
 import { LeaguesClient } from "./leagues-client";
+import { PageHeader } from "@/components/page-header";
+import { Users } from "lucide-react";
 
 export default async function LeaguesPage() {
   const user = await requireUser();
@@ -8,12 +10,11 @@ export default async function LeaguesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Leagues</h1>
-        <p className="text-muted-foreground">
-          Create or join leagues to compete with friends
-        </p>
-      </div>
+      <PageHeader
+        icon={Users}
+        title="Leagues"
+        description="Create or join leagues to compete with friends"
+      />
 
       <LeaguesClient leagues={leagues} />
     </div>

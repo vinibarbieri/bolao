@@ -17,8 +17,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { TeamFlag } from "@/components/team-badge";
+import { cn } from "@/lib/utils";
 import type { TeamPlacement, GroupLetter } from "@/lib/stores/group-simulator-store";
 
 interface PlacementsTableProps {
@@ -51,7 +53,12 @@ export function PlacementsTable({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Group {group}</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <span className="bg-brand-gradient flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold text-brand-foreground">
+            {group}
+          </span>
+          Group {group}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <DndContext
@@ -102,10 +109,17 @@ function SortableTeamRow({
 
   const positionColor =
     position <= 2
-      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+      ? "bg-qualified/15 text-qualified-foreground ring-qualified/30"
       : position === 3
-        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+        ? "bg-third/20 text-third-foreground ring-third/40"
+        : "bg-eliminated/12 text-eliminated-foreground ring-eliminated/25";
+
+  const accentBar =
+    position <= 2
+      ? "bg-qualified"
+      : position === 3
+        ? "bg-third"
+        : "bg-eliminated";
 
   return (
     <div
@@ -113,30 +127,28 @@ function SortableTeamRow({
       style={style}
       {...attributes}
       {...listeners}
-      className={`flex cursor-grab items-center gap-3 rounded-md border px-3 py-2 transition-colors ${
+      className={cn(
+        "relative flex cursor-grab touch-none items-center gap-3 overflow-hidden rounded-lg border py-2 pl-4 pr-3 transition-colors active:cursor-grabbing",
         isDragging
           ? "z-50 border-primary bg-primary/5 shadow-lg"
-          : "bg-background hover:bg-muted/50"
-      }`}
+          : "bg-background hover:bg-muted/50",
+      )}
     >
-      <Badge variant="outline" className={positionColor}>
-        {position}
-      </Badge>
-      <span className="flex-1 font-medium">{team.teamName}</span>
-      <span className="text-xs text-muted-foreground">{team.teamId}</span>
-      <svg
-        className="h-4 w-4 text-muted-foreground"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
+      <span className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
+      <span
+        className={cn(
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ring-1",
+          positionColor,
+        )}
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4 8h16M4 16h16"
-        />
-      </svg>
+        {position}
+      </span>
+      <TeamFlag teamId={team.teamId} size="md" />
+      <span className="flex-1 truncate font-medium">{team.teamName}</span>
+      <span className="font-mono text-xs uppercase text-muted-foreground">
+        {team.teamId}
+      </span>
+      <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground/60" />
     </div>
   );
 }

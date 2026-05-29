@@ -7,6 +7,8 @@ import {
 import { BracketBuilderClient } from "@/components/bracket/bracket-builder-client";
 import { getThirdPlaceAssignments, type GroupLetter } from "@/lib/tournament/third-place-lookup";
 import { resolveR32Matchups } from "@/lib/tournament/bracket-mapping";
+import { PageHeader } from "@/components/page-header";
+import { Trophy, AlertTriangle } from "lucide-react";
 
 export default async function BracketPage() {
   const user = await requireUser();
@@ -78,21 +80,23 @@ export default async function BracketPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Knockout Bracket</h1>
-        <p className="text-muted-foreground">
-          Click on teams to advance them through the bracket
-        </p>
-      </div>
+      <PageHeader
+        icon={Trophy}
+        title="Knockout Bracket"
+        description="Click on a team to advance them through each round to the final"
+      />
 
       {!isReady ? (
-        <div className="rounded-lg border border-yellow-500 bg-yellow-50 p-6 dark:bg-yellow-950">
-          <p className="font-medium text-yellow-800 dark:text-yellow-200">
-            Complete your 3rd-place selection first (need 8 teams selected).
-          </p>
-          <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-            Currently selected: {thirdPlaceTeams.length}/8
-          </p>
+        <div className="flex items-start gap-3 rounded-xl border border-third/50 bg-third/10 p-6">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-third-foreground" />
+          <div>
+            <p className="font-medium text-third-foreground">
+              Complete your 3rd-place selection first (need 8 teams selected).
+            </p>
+            <p className="mt-1 text-sm text-third-foreground/80">
+              Currently selected: {thirdPlaceTeams.length}/8
+            </p>
+          </div>
         </div>
       ) : (
         <BracketBuilderClient

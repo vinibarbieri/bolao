@@ -1,6 +1,8 @@
 import { requireUser } from "@/lib/supabase/auth";
 import { getTournamentConfig } from "../queries";
 import { AdminClient } from "./admin-client";
+import { PageHeader } from "@/components/page-header";
+import { Settings } from "lucide-react";
 
 export default async function AdminPage() {
   const user = await requireUser();
@@ -8,12 +10,11 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Admin Panel</h1>
-        <p className="text-muted-foreground">
-          Manage tournament data, enter results, and control predictions
-        </p>
-      </div>
+      <PageHeader
+        icon={Settings}
+        title="Admin Panel"
+        description="Manage tournament data, enter results, and control predictions"
+      />
 
       <AdminClient
         config={config}

@@ -11,6 +11,7 @@ import { ScoresTable } from "./scores-table";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { saveGroupPredictions, saveScorePredictions } from "@/app/(app)/actions";
+import { Save } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -195,12 +196,18 @@ export function GroupSimulatorClient({
       </Tabs>
 
       {/* Save button */}
-      <div className="flex items-center gap-4">
-        <Button onClick={handleSave} disabled={!store.isDirty}>
+      <div className="sticky bottom-4 flex items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
+        <Button onClick={handleSave} disabled={!store.isDirty} className="gap-2">
+          <Save className="h-4 w-4" />
           Save All Group Predictions
         </Button>
-        {store.isDirty && (
-          <span className="text-sm text-yellow-600">Unsaved changes</span>
+        {store.isDirty ? (
+          <span className="flex items-center gap-1.5 text-sm font-medium text-third-foreground">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-third" />
+            Unsaved changes
+          </span>
+        ) : (
+          <span className="text-sm text-muted-foreground">All changes saved</span>
         )}
       </div>
     </div>

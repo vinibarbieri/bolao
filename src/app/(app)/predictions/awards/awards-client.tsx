@@ -13,32 +13,53 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { saveAwardPredictions } from "@/app/(app)/actions";
+import { TeamFlag } from "@/components/team-badge";
+import { cn } from "@/lib/utils";
+import {
+  Goal,
+  Shield,
+  Handshake,
+  Sparkles,
+  Check,
+  Save,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
-const AWARD_TYPES = [
+const AWARD_TYPES: {
+  type: "golden_boot" | "golden_glove" | "top_assist" | "goal_of_tournament";
+  label: string;
+  description: string;
+  needsPlayer: boolean;
+  icon: LucideIcon;
+}[] = [
   {
-    type: "golden_boot" as const,
+    type: "golden_boot",
     label: "Golden Boot",
     description: "Top scorer of the tournament",
     needsPlayer: true,
+    icon: Goal,
   },
   {
-    type: "golden_glove" as const,
+    type: "golden_glove",
     label: "Golden Glove",
     description: "Best goalkeeper of the tournament",
     needsPlayer: true,
+    icon: Shield,
   },
   {
-    type: "top_assist" as const,
+    type: "top_assist",
     label: "Top Assists",
     description: "Most assists in the tournament",
     needsPlayer: true,
+    icon: Handshake,
   },
   {
-    type: "goal_of_tournament" as const,
+    type: "goal_of_tournament",
     label: "Goal of the Tournament",
     description: "Best goal scored in the tournament",
     needsPlayer: false,
+    icon: Sparkles,
   },
 ];
 
@@ -111,93 +132,135 @@ export function AwardsPredictionClient({
 
   return (
     <div className="space-y-4">
-      {AWARD_TYPES.map((award) => (
-        <Card key={award.type}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">{award.label}</CardTitle>
-            <CardDescription>{award.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {award.needsPlayer ? (
-              <div className="space-y-2">
-                <Label>Player</Label>
-                <Input
-                  placeholder="Search for a player..."
-                  value={selections[award.type]?.search ?? ""}
-                  onChange={(e) => {
-                    setSelections((prev) => ({
-                      ...prev,
-                      [award.type]: {
-                        ...prev[award.type],
-                        search: e.target.value,
-                        playerId: undefined,
-                      },
-                    }));
-                  }}
-                />
-                {selections[award.type]?.search &&
-                  !selections[award.type]?.playerId && (
-                    <div className="max-h-40 overflow-y-auto rounded-md border">
-                      {players
-                        .filter((p) =>
-                          p.name
-                            .toLowerCase()
-                            .includes(
-                              (
-                                selections[award.type]?.search ?? ""
-                              ).toLowerCase()
-                            )
-                        )
-                        .slice(0, 10)
-                        .map((player) => (
-                          <button
-                            key={player.id}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted"
-                            onClick={() => {
-                              setSelections((prev) => ({
-                                ...prev,
-                                [award.type]: {
-                                  ...prev[award.type],
-                                  playerId: player.id,
-                                  search: player.name,
-                                },
-                              }));
-                            }}
-                          >
-                            <span className="font-medium">{player.name}</span>
-                            <span className="text-muted-foreground">
-                              ({player.teamId})
-                            </span>
-                          </button>
-                        ))}
-                    </div>
-                  )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  placeholder="Describe the goal..."
-                  value={selections[award.type]?.description ?? ""}
-                  onChange={(e) => {
-                    setSelections((prev) => ({
-                      ...prev,
-                      [award.type]: {
-                        ...prev[award.type],
-                        description: e.target.value,
-                      },
-                    }));
-                  }}
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {AWARD_TYPES.map((award) => {
+          const Icon = award.icon;
+          const sel = selections[award.type];
+          const chosen = sel?.playerId
+            ? players.find((p) => p.id === sel.playerId)
+            : null;
+          const filled = award.needsPlayer ? !!chosen : !!sel?.description?.trim();
 
-      <Button onClick={handleSave} disabled={saving}>
-        {saving ? "Saving..." : "Save Award Predictions"}
-      </Button>
+          return (
+            <Card
+              key={award.type}
+              className={cn(
+                "transition-colors",
+                filled && "border-gold/50 ring-1 ring-gold/30",
+              )}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={cn(
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                      filled
+                        ? "bg-gold/20 text-gold-foreground"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <CardTitle className="text-lg">{award.label}</CardTitle>
+                    <CardDescription>{award.description}</CardDescription>
+                  </div>
+                  {filled && (
+                    <Check className="ml-auto h-5 w-5 shrink-0 text-qualified" />
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {award.needsPlayer ? (
+                  <div className="space-y-2">
+                    <Label>Player</Label>
+                    {chosen && (
+                      <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+                        <TeamFlag teamId={chosen.teamId} size="md" />
+                        <span className="font-medium">{chosen.name}</span>
+                        <span className="text-muted-foreground">
+                          {chosen.position}
+                        </span>
+                      </div>
+                    )}
+                    <Input
+                      placeholder="Search for a player..."
+                      value={sel?.search ?? ""}
+                      onChange={(e) => {
+                        setSelections((prev) => ({
+                          ...prev,
+                          [award.type]: {
+                            ...prev[award.type],
+                            search: e.target.value,
+                            playerId: undefined,
+                          },
+                        }));
+                      }}
+                    />
+                    {sel?.search && !sel?.playerId && (
+                      <div className="max-h-40 overflow-y-auto rounded-lg border">
+                        {players
+                          .filter((p) =>
+                            p.name
+                              .toLowerCase()
+                              .includes((sel?.search ?? "").toLowerCase()),
+                          )
+                          .slice(0, 10)
+                          .map((player) => (
+                            <button
+                              key={player.id}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted"
+                              onClick={() => {
+                                setSelections((prev) => ({
+                                  ...prev,
+                                  [award.type]: {
+                                    ...prev[award.type],
+                                    playerId: player.id,
+                                    search: player.name,
+                                  },
+                                }));
+                              }}
+                            >
+                              <TeamFlag teamId={player.teamId} size="sm" />
+                              <span className="font-medium">{player.name}</span>
+                              <span className="text-muted-foreground">
+                                {player.position}
+                              </span>
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      placeholder="Describe the goal..."
+                      value={sel?.description ?? ""}
+                      onChange={(e) => {
+                        setSelections((prev) => ({
+                          ...prev,
+                          [award.type]: {
+                            ...prev[award.type],
+                            description: e.target.value,
+                          },
+                        }));
+                      }}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="sticky bottom-4 flex items-center rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
+        <Button onClick={handleSave} disabled={saving} className="gap-2">
+          <Save className="h-4 w-4" />
+          {saving ? "Saving..." : "Save Award Predictions"}
+        </Button>
+      </div>
     </div>
   );
 }

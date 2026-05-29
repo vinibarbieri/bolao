@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Trophy } from "lucide-react";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -53,10 +54,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Bolao 2026</CardTitle>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      <div className="bg-brand-gradient pointer-events-none absolute -top-24 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full opacity-20 blur-3xl" />
+      <Card className="relative w-full max-w-md shadow-lg">
+        <CardHeader className="items-center text-center">
+          <span className="bg-brand-gradient mb-2 flex h-16 w-16 items-center justify-center rounded-2xl text-brand-foreground shadow-md">
+            <Trophy className="h-8 w-8" />
+          </span>
+          <CardTitle className="font-heading text-4xl font-bold uppercase tracking-wide">
+            Bolão 2026
+          </CardTitle>
           <CardDescription>
             World Cup prediction game for friends
           </CardDescription>

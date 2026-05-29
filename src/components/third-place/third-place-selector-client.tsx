@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { saveThirdPlaceSelections } from "@/app/(app)/actions";
+import { TeamFlag } from "@/components/team-badge";
+import { cn } from "@/lib/utils";
+import { Check, Medal, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -55,17 +57,39 @@ export function ThirdPlaceSelectorClient({ teams }: Props) {
     }
   };
 
+  const complete = selected.size === 8;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Badge variant={selected.size === 8 ? "default" : "secondary"}>
-          {selected.size}/8 selected
-        </Badge>
+      <div className="sticky top-4 z-10 flex items-center gap-4 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
+        <div className="flex items-center gap-2">
+          <Medal
+            className={cn(
+              "h-5 w-5",
+              complete ? "text-qualified" : "text-third",
+            )}
+          />
+          <span className="text-sm font-semibold">
+            {selected.size}
+            <span className="text-muted-foreground">/8 selected</span>
+          </span>
+        </div>
+        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+          <div
+            className={cn(
+              "h-full rounded-full transition-all",
+              complete ? "bg-qualified" : "bg-brand-gradient",
+            )}
+            style={{ width: `${(selected.size / 8) * 100}%` }}
+          />
+        </div>
         <Button
           onClick={handleSave}
-          disabled={selected.size !== 8 || saving}
+          disabled={!complete || saving}
+          className="gap-2"
         >
           {saving ? "Saving..." : "Save & Build Bracket"}
+          {!saving && <ArrowRight className="h-4 w-4" />}
         </Button>
       </div>
 
@@ -79,28 +103,37 @@ export function ThirdPlaceSelectorClient({ teams }: Props) {
             return (
               <Card
                 key={team.teamId}
-                className={`cursor-pointer transition-colors ${
+                className={cn(
+                  "cursor-pointer transition-all",
                   isChecked
-                    ? "border-primary bg-primary/5"
+                    ? "border-qualified ring-1 ring-qualified/40 bg-qualified/5"
                     : isDisabled
                       ? "opacity-50"
-                      : "hover:border-primary/50"
-                }`}
+                      : "hover:border-primary/50 hover:shadow-sm",
+                )}
                 onClick={() => !isDisabled && toggleTeam(team.teamId)}
               >
                 <CardContent className="flex items-center gap-3 p-4">
-                  <Checkbox
-                    checked={isChecked}
-                    disabled={isDisabled}
-                    onCheckedChange={() => toggleTeam(team.teamId)}
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium">{team.teamName}</p>
-                    <p className="text-sm text-muted-foreground">
+                  <span
+                    className={cn(
+                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                      isChecked
+                        ? "border-qualified bg-qualified/25 text-qualified-foreground"
+                        : "border-muted-foreground/30",
+                    )}
+                  >
+                    {isChecked && <Check className="h-3.5 w-3.5" />}
+                  </span>
+                  <TeamFlag teamId={team.teamId} size="lg" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{team.teamName}</p>
+                    <p className="text-xs text-muted-foreground">
                       3rd in Group {team.groupLetter}
                     </p>
                   </div>
-                  <Badge variant="outline">{team.teamId}</Badge>
+                  <Badge variant="outline" className="font-mono">
+                    {team.teamId}
+                  </Badge>
                 </CardContent>
               </Card>
             );

@@ -19,7 +19,48 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TeamFlag } from "@/components/team-badge";
+import { cn } from "@/lib/utils";
+import { Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
+
+const STATUS_STYLES: Record<string, string> = {
+  finished: "bg-qualified/15 text-qualified-foreground",
+  live: "bg-eliminated/15 text-eliminated-foreground",
+};
+
+function StatusBadge({ status }: { status: string }) {
+  return (
+    <Badge className={cn(STATUS_STYLES[status] ?? "bg-muted text-muted-foreground")}>
+      {status === "live" && (
+        <span className="mr-1 h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+      )}
+      {status}
+    </Badge>
+  );
+}
+
+function TeamCell({
+  teamId,
+  name,
+  align = "left",
+}: {
+  teamId: string | null;
+  name: string | null | undefined;
+  align?: "left" | "right";
+}) {
+  return (
+    <span
+      className={cn(
+        "flex items-center gap-2",
+        align === "right" && "flex-row-reverse text-right",
+      )}
+    >
+      <TeamFlag teamId={teamId} size="sm" />
+      <span className="truncate">{name ?? teamId ?? "TBD"}</span>
+    </span>
+  );
+}
 
 interface Match {
   id: string;
@@ -109,9 +150,14 @@ export function MatchAdminClient({
               {groupMatches.map((match) => (
                 <TableRow key={match.id}>
                   <TableCell>{match.matchNumber}</TableCell>
-                  <TableCell>{match.groupLetter}</TableCell>
                   <TableCell>
-                    {teamNameMap.get(match.homeTeamId ?? "") ?? match.homeTeamId}
+                    <Badge variant="outline">{match.groupLetter}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <TeamCell
+                      teamId={match.homeTeamId}
+                      name={teamNameMap.get(match.homeTeamId ?? "")}
+                    />
                   </TableCell>
                   <TableCell className="text-center">
                     {editingMatch === match.id ? (
@@ -139,48 +185,46 @@ export function MatchAdminClient({
                     )}
                   </TableCell>
                   <TableCell>
-                    {teamNameMap.get(match.awayTeamId ?? "") ?? match.awayTeamId}
+                    <TeamCell
+                      teamId={match.awayTeamId}
+                      name={teamNameMap.get(match.awayTeamId ?? "")}
+                    />
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        match.status === "finished"
-                          ? "default"
-                          : match.status === "live"
-                            ? "destructive"
-                            : "secondary"
-                      }
-                    >
-                      {match.status}
-                    </Badge>
+                    <StatusBadge status={match.status} />
                   </TableCell>
                   <TableCell>
                     {editingMatch === match.id ? (
                       <div className="flex gap-1">
                         <Button
                           size="sm"
+                          className="gap-1"
                           onClick={() => handleSubmitResult(match.id)}
                         >
+                          <Check className="h-3.5 w-3.5" />
                           Save
                         </Button>
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
+                          aria-label="Cancel"
                           onClick={() => setEditingMatch(null)}
                         >
-                          Cancel
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
                     ) : (
                       <Button
                         size="sm"
                         variant="outline"
+                        className="gap-1"
                         onClick={() => {
                           setEditingMatch(match.id);
                           setHomeScore(match.homeScore?.toString() ?? "");
                           setAwayScore(match.awayScore?.toString() ?? "");
                         }}
                       >
+                        <Pencil className="h-3.5 w-3.5" />
                         Edit
                       </Button>
                     )}
@@ -215,11 +259,15 @@ export function MatchAdminClient({
                   <TableRow key={match.id}>
                     <TableCell>{match.matchNumber}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{match.stage}</Badge>
+                      <Badge variant="outline" className="uppercase">
+                        {match.stage}
+                      </Badge>
                     </TableCell>
                     <TableCell>
-                      {teamNameMap.get(match.homeTeamId ?? "") ??
-                        match.homeTeamId ?? "TBD"}
+                      <TeamCell
+                        teamId={match.homeTeamId}
+                        name={teamNameMap.get(match.homeTeamId ?? "")}
+                      />
                     </TableCell>
                     <TableCell className="text-center">
                       {match.homeScore !== null
@@ -227,30 +275,26 @@ export function MatchAdminClient({
                         : "-"}
                     </TableCell>
                     <TableCell>
-                      {teamNameMap.get(match.awayTeamId ?? "") ??
-                        match.awayTeamId ?? "TBD"}
+                      <TeamCell
+                        teamId={match.awayTeamId}
+                        name={teamNameMap.get(match.awayTeamId ?? "")}
+                      />
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          match.status === "finished"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {match.status}
-                      </Badge>
+                      <StatusBadge status={match.status} />
                     </TableCell>
                     <TableCell>
                       <Button
                         size="sm"
                         variant="outline"
+                        className="gap-1"
                         onClick={() => {
                           setEditingMatch(match.id);
                           setHomeScore(match.homeScore?.toString() ?? "");
                           setAwayScore(match.awayScore?.toString() ?? "");
                         }}
                       >
+                        <Pencil className="h-3.5 w-3.5" />
                         Edit
                       </Button>
                     </TableCell>

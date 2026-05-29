@@ -1,6 +1,8 @@
 import { requireUser } from "@/lib/supabase/auth";
 import { getUserGroupPredictions, getTeamsByGroup } from "../queries";
 import { ThirdPlaceSelectorClient } from "@/components/third-place/third-place-selector-client";
+import { PageHeader } from "@/components/page-header";
+import { Medal, AlertTriangle } from "lucide-react";
 
 export default async function ThirdPlacePage() {
   const user = await requireUser();
@@ -27,23 +29,24 @@ export default async function ThirdPlacePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">3rd Place Selection</h1>
-        <p className="text-muted-foreground">
-          Select exactly 8 of the 12 third-place teams you think will qualify
-          for the Round of 32
-        </p>
-      </div>
+      <PageHeader
+        icon={Medal}
+        title="3rd Place Selection"
+        description="Select exactly 8 of the 12 third-place teams you think will qualify for the Round of 32"
+      />
 
       {!hasAllGroups ? (
-        <div className="rounded-lg border border-yellow-500 bg-yellow-50 p-6 dark:bg-yellow-950">
-          <p className="font-medium text-yellow-800 dark:text-yellow-200">
-            Complete all 12 group predictions first before selecting 3rd-place
-            qualifiers.
-          </p>
-          <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-            You have {thirdPlaceTeams.length}/12 groups completed.
-          </p>
+        <div className="flex items-start gap-3 rounded-xl border border-third/50 bg-third/10 p-6">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-third-foreground" />
+          <div>
+            <p className="font-medium text-third-foreground">
+              Complete all 12 group predictions first before selecting 3rd-place
+              qualifiers.
+            </p>
+            <p className="mt-1 text-sm text-third-foreground/80">
+              You have {thirdPlaceTeams.length}/12 groups completed.
+            </p>
+          </div>
         </div>
       ) : (
         <ThirdPlaceSelectorClient teams={thirdPlaceTeams} />

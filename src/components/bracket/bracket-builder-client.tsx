@@ -5,8 +5,10 @@ import { useBracketStore, type BracketTeam } from "@/lib/stores/bracket-store";
 import { type R32Matchup, BRACKET_STRUCTURE } from "@/lib/tournament/bracket-mapping";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { saveBracketPredictions } from "@/app/(app)/actions";
+import { TeamFlag } from "@/components/team-badge";
+import { cn } from "@/lib/utils";
+import { Trophy, Crown, Save, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -189,61 +191,94 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button onClick={handleSave} disabled={!store.isDirty || saving}>
+      <div className="sticky top-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
+        <Button
+          onClick={handleSave}
+          disabled={!store.isDirty || saving}
+          className="gap-2"
+        >
+          <Save className="h-4 w-4" />
           {saving ? "Saving..." : "Save Bracket"}
         </Button>
-        <Button variant="outline" onClick={() => store.clearBracket()}>
-          Reset Bracket
+        <Button
+          variant="outline"
+          onClick={() => store.clearBracket()}
+          className="gap-2"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Reset
         </Button>
-        {store.isDirty && (
-          <span className="text-sm text-yellow-600">Unsaved changes</span>
+        {store.isDirty ? (
+          <span className="flex items-center gap-1.5 text-sm font-medium text-third-foreground">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-third" />
+            Unsaved changes
+          </span>
+        ) : (
+          <span className="text-sm text-muted-foreground">Bracket saved</span>
         )}
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
-        <div className="min-w-[220px] flex-shrink-0">
-          <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
-            {ROUND_LABELS.r32}
-          </h3>
-          <div className="space-y-2">{r32Cards}</div>
-        </div>
+        <BracketColumn label={ROUND_LABELS.r32}>{r32Cards}</BracketColumn>
 
         {laterRounds
           .filter((r) => r !== "third")
           .map((round) => (
-            <div key={round} className="min-w-[220px] flex-shrink-0">
-              <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
-                {ROUND_LABELS[round]}
-              </h3>
-              <div className="space-y-2">{roundCards[round]}</div>
-            </div>
+            <BracketColumn key={round} label={ROUND_LABELS[round]}>
+              {roundCards[round]}
+            </BracketColumn>
           ))}
       </div>
 
       {/* 3rd place match */}
       {roundCards.third && roundCards.third.length > 0 && (
         <div>
-          <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
-            {ROUND_LABELS.third}
-          </h3>
-          <div className="max-w-[220px]">{roundCards.third}</div>
+          <RoundHeading>{ROUND_LABELS.third}</RoundHeading>
+          <div className="max-w-[240px]">{roundCards.third}</div>
         </div>
       )}
 
       {champion && (
-        <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-          <CardContent className="flex items-center gap-3 p-6">
-            <span className="text-2xl">🏆</span>
-            <div>
-              <p className="text-lg font-bold">{champion.teamName}</p>
-              <p className="text-sm text-muted-foreground">
-                Your predicted champion
-              </p>
+        <Card className="overflow-hidden border-gold/60 bg-gold/10">
+          <CardContent className="flex items-center gap-4 p-6">
+            <span className="bg-brand-gradient flex h-14 w-14 items-center justify-center rounded-2xl text-brand-foreground shadow-md">
+              <Trophy className="h-7 w-7" />
+            </span>
+            <div className="flex items-center gap-3">
+              <TeamFlag teamId={champion.teamId} size="lg" />
+              <div>
+                <p className="text-xl font-extrabold">{champion.teamName}</p>
+                <p className="text-sm text-muted-foreground">
+                  Your predicted champion
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function RoundHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+      {children}
+    </h3>
+  );
+}
+
+function BracketColumn({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-[240px] flex-shrink-0">
+      <RoundHeading>{label}</RoundHeading>
+      <div className="flex flex-col justify-around gap-3 h-full">{children}</div>
     </div>
   );
 }
@@ -266,41 +301,52 @@ function MatchupCard({
   onAdvance: (fromSlot: number, toSlot: number) => void;
 }) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden p-0 shadow-sm transition-shadow hover:shadow-md">
       <div className="divide-y">
-        <button
-          className={`flex w-full items-center gap-2 px-3 py-2 text-left transition-colors ${
-            winner?.teamId === team1?.teamId
-              ? "bg-green-50 dark:bg-green-950"
-              : "hover:bg-muted/50"
-          }`}
+        <TeamSlotButton
+          team={team1}
+          isWinner={!!winner && winner.teamId === team1?.teamId}
           onClick={() => team1 && onAdvance(team1Slot, targetSlot)}
-          disabled={!team1}
-        >
-          <span className="flex-1 text-sm font-medium">
-            {team1?.teamName ?? "TBD"}
-          </span>
-          {winner?.teamId === team1?.teamId && (
-            <Badge variant="default" className="text-xs">W</Badge>
-          )}
-        </button>
-        <button
-          className={`flex w-full items-center gap-2 px-3 py-2 text-left transition-colors ${
-            winner?.teamId === team2?.teamId
-              ? "bg-green-50 dark:bg-green-950"
-              : "hover:bg-muted/50"
-          }`}
+        />
+        <TeamSlotButton
+          team={team2}
+          isWinner={!!winner && winner.teamId === team2?.teamId}
           onClick={() => team2 && onAdvance(team2Slot, targetSlot)}
-          disabled={!team2}
-        >
-          <span className="flex-1 text-sm font-medium">
-            {team2?.teamName ?? "TBD"}
-          </span>
-          {winner?.teamId === team2?.teamId && (
-            <Badge variant="default" className="text-xs">W</Badge>
-          )}
-        </button>
+        />
       </div>
     </Card>
+  );
+}
+
+function TeamSlotButton({
+  team,
+  isWinner,
+  onClick,
+}: {
+  team: BracketTeam | null;
+  isWinner: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={cn(
+        "flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed",
+        isWinner
+          ? "bg-qualified/12 font-semibold"
+          : team
+            ? "hover:bg-muted/60"
+            : "opacity-60",
+      )}
+      onClick={onClick}
+      disabled={!team}
+    >
+      {team ? (
+        <TeamFlag teamId={team.teamId} size="md" />
+      ) : (
+        <span className="h-4 w-6 rounded-[2px] bg-muted" />
+      )}
+      <span className="flex-1 truncate text-sm">{team?.teamName ?? "TBD"}</span>
+      {isWinner && <Crown className="h-4 w-4 shrink-0 text-gold" />}
+    </button>
   );
 }

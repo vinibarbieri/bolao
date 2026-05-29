@@ -1,15 +1,16 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "flag-icons/css/flag-icons.min.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-oswald);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,6 +40,21 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Vibrant World Cup 2026 semantic palette */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-2: var(--brand-2);
+  --color-brand-3: var(--brand-3);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-qualified: var(--qualified);
+  --color-qualified-foreground: var(--qualified-foreground);
+  --color-third: var(--third);
+  --color-third-foreground: var(--third-foreground);
+  --color-eliminated: var(--eliminated);
+  --color-eliminated-foreground: var(--eliminated-foreground);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,72 +65,117 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 0.7rem;
+
+  --background: oklch(0.99 0.004 300);
+  --foreground: oklch(0.2 0.03 300);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.2 0.03 300);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.2 0.03 300);
+
+  /* Brand = vibrant yellow→green, the spirit of the 2026 identity */
+  --primary: oklch(0.72 0.18 85);
+  --primary-foreground: oklch(0.2 0.06 85);
+  --secondary: oklch(0.96 0.02 300);
+  --secondary-foreground: oklch(0.28 0.05 300);
+  --muted: oklch(0.965 0.01 300);
+  --muted-foreground: oklch(0.52 0.03 300);
+  --accent: oklch(0.95 0.04 200);
+  --accent-foreground: oklch(0.3 0.08 240);
+  --destructive: oklch(0.6 0.245 27);
+  --border: oklch(0.91 0.012 300);
+  --input: oklch(0.91 0.012 300);
+  --ring: oklch(0.72 0.18 85);
+
+  /* Vibrant multi-hue chart/accent ramp */
+  --chart-1: oklch(0.72 0.18 85);
+  --chart-2: oklch(0.65 0.18 200);
+  --chart-3: oklch(0.72 0.17 145);
+  --chart-4: oklch(0.78 0.16 85);
+  --chart-5: oklch(0.6 0.22 280);
+
+  /* Brand gradient stops: yellow → yellow-green → green */
+  --brand: oklch(0.72 0.18 85);
+  --brand-foreground: oklch(0.2 0.06 85);
+  --brand-2: oklch(0.68 0.18 115);
+  --brand-3: oklch(0.65 0.19 145);
+
+  /* Trophy / awards gold */
+  --gold: oklch(0.8 0.15 85);
+  --gold-foreground: oklch(0.32 0.08 75);
+
+  /* Tournament status colors */
+  --qualified: oklch(0.72 0.17 150);
+  --qualified-foreground: oklch(0.27 0.09 150);
+  --third: oklch(0.82 0.15 85);
+  --third-foreground: oklch(0.34 0.09 75);
+  --eliminated: oklch(0.64 0.2 25);
+  --eliminated-foreground: oklch(0.32 0.12 25);
+
+  --sidebar: oklch(0.985 0.006 300);
+  --sidebar-foreground: oklch(0.25 0.03 300);
+  --sidebar-primary: oklch(0.72 0.18 85);
+  --sidebar-primary-foreground: oklch(0.2 0.06 85);
+  --sidebar-accent: oklch(0.95 0.04 90);
+  --sidebar-accent-foreground: oklch(0.3 0.07 85);
+  --sidebar-border: oklch(0.91 0.012 300);
+  --sidebar-ring: oklch(0.72 0.18 85);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.16 0.02 290);
+  --foreground: oklch(0.96 0.01 300);
+  --card: oklch(0.21 0.025 290);
+  --card-foreground: oklch(0.96 0.01 300);
+  --popover: oklch(0.21 0.025 290);
+  --popover-foreground: oklch(0.96 0.01 300);
+
+  --primary: oklch(0.8 0.17 85);
+  --primary-foreground: oklch(0.15 0.05 85);
+  --secondary: oklch(0.28 0.03 290);
+  --secondary-foreground: oklch(0.96 0.01 300);
+  --muted: oklch(0.27 0.025 290);
+  --muted-foreground: oklch(0.7 0.02 300);
+  --accent: oklch(0.32 0.06 230);
+  --accent-foreground: oklch(0.92 0.04 220);
+  --destructive: oklch(0.7 0.19 22);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.8 0.17 85);
+
+  --chart-1: oklch(0.8 0.17 85);
+  --chart-2: oklch(0.72 0.16 200);
+  --chart-3: oklch(0.76 0.16 145);
+  --chart-4: oklch(0.82 0.15 85);
+  --chart-5: oklch(0.68 0.2 280);
+
+  --brand: oklch(0.8 0.17 85);
+  --brand-foreground: oklch(0.15 0.05 85);
+  --brand-2: oklch(0.74 0.16 115);
+  --brand-3: oklch(0.76 0.16 145);
+
+  --gold: oklch(0.82 0.15 85);
+  /* Status foregrounds are used as text on subtle low-opacity tints. In dark
+     mode those tints sit on a dark card, so the text must be LIGHT to stay
+     readable (dark-on-dark would be invisible). */
+  --gold-foreground: oklch(0.88 0.13 90);
+
+  --qualified: oklch(0.74 0.16 150);
+  --qualified-foreground: oklch(0.85 0.15 150);
+  --third: oklch(0.82 0.15 85);
+  --third-foreground: oklch(0.88 0.13 90);
+  --eliminated: oklch(0.68 0.19 25);
+  --eliminated-foreground: oklch(0.82 0.14 28);
+
+  --sidebar: oklch(0.19 0.025 290);
+  --sidebar-foreground: oklch(0.94 0.01 300);
+  --sidebar-primary: oklch(0.8 0.17 85);
+  --sidebar-primary-foreground: oklch(0.15 0.05 85);
+  --sidebar-accent: oklch(0.3 0.06 90);
+  --sidebar-accent-foreground: oklch(0.95 0.04 85);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.8 0.17 85);
 }
 
 @layer base {
@@ -126,5 +187,37 @@
   }
   html {
     @apply font-sans;
+  }
+  /* Display font for page-level headings. Oswald is condensed, so keep
+     tracking near-normal and let weight carry the emphasis. */
+  h1,
+  h2,
+  h3,
+  .font-heading {
+    font-family: var(--font-oswald), var(--font-inter), sans-serif;
+    letter-spacing: 0.01em;
+  }
+}
+
+@layer utilities {
+  /* Brand gradient text + surfaces for the WC2026 vibe */
+  .text-brand-gradient {
+    background-image: linear-gradient(
+      100deg,
+      var(--brand) 0%,
+      var(--brand-2) 55%,
+      var(--brand-3) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-brand-gradient {
+    background-image: linear-gradient(
+      100deg,
+      var(--brand) 0%,
+      var(--brand-2) 55%,
+      var(--brand-3) 100%
+    );
   }
 }

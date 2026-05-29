@@ -1,6 +1,8 @@
 import { requireUser } from "@/lib/supabase/auth";
 import { getTeamsByGroup, getUserGroupPredictions, getGroupMatches, getUserScorePredictions } from "../queries";
 import { GroupSimulatorClient } from "@/components/group-simulator/group-simulator-client";
+import { PageHeader } from "@/components/page-header";
+import { Volleyball } from "lucide-react";
 import type { GroupLetter } from "@/lib/stores/group-simulator-store";
 
 export default async function GroupsPage() {
@@ -65,12 +67,11 @@ export default async function GroupsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Group Stage Predictions</h1>
-        <p className="text-muted-foreground">
-          Drag and drop teams to predict the final standings for each group
-        </p>
-      </div>
+      <PageHeader
+        icon={Volleyball}
+        title="Group Stage Predictions"
+        description="Drag and drop teams to predict the final standings for each group"
+      />
 
       <GroupSimulatorClient
         initialPlacements={initialPlacements}
