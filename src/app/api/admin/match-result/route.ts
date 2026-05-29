@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { matches } from "@/db/schema/matches";
 import { groupStandings } from "@/db/schema/teams";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { getUser } from "@/lib/supabase/auth";
 
 export async function POST(request: Request) {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     })
     .where(eq(matches.id, matchId));
 
-  // If it's a group match, update group standings
+  // If it's a group match, update group standings and best-third rankings
   if (match[0].stage === "group" && match[0].homeTeamId && match[0].awayTeamId) {
     await updateGroupStandings(
       match[0].homeTeamId,
@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       awayScore,
       match[0].groupLetter!
     );
+    await recalculateBestThirds();
   }
 
   return NextResponse.json({ success: true });
@@ -147,5 +148,32 @@ async function updateGroupStandings(
         points: s.points,
       })
       .where(eq(groupStandings.teamId, s.teamId));
+  }
+}
+
+// Re-ranks all third-place teams and marks the best 8 as isBestThird.
+// Called after every group match result is entered.
+async function recalculateBestThirds() {
+  const thirds = await db
+    .select()
+    .from(groupStandings)
+    .where(eq(groupStandings.position, 3))
+    .orderBy(asc(groupStandings.points));
+
+  // Sort: points DESC → gd DESC → gf DESC (FIFA tiebreaker)
+  const sorted = [...thirds].sort(
+    (a, b) =>
+      (b.points ?? 0) - (a.points ?? 0) ||
+      (b.gd ?? 0) - (a.gd ?? 0) ||
+      (b.gf ?? 0) - (a.gf ?? 0),
+  );
+
+  const best8 = new Set(sorted.slice(0, 8).map((t) => t.teamId));
+
+  for (const team of thirds) {
+    await db
+      .update(groupStandings)
+      .set({ isBestThird: best8.has(team.teamId) })
+      .where(eq(groupStandings.teamId, team.teamId));
   }
 }
