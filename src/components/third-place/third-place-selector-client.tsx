@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { saveThirdPlaceSelections } from "@/app/(app)/actions";
 import { TeamFlag } from "@/components/team-badge";
+import { TeamName } from "@/components/team-name";
 import { cn } from "@/lib/utils";
 import { Check, Medal, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -130,7 +131,7 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
                   </span>
                   <TeamFlag teamId={team.teamId} size="lg" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{team.teamName}</p>
+                    <p className="truncate font-medium"><TeamName teamId={team.teamId} /></p>
                     <p className="text-xs text-muted-foreground">
                       {t("thirdInGroup", { letter: team.groupLetter })}
                     </p>

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TeamFlag, TeamBadge } from "@/components/team-badge";
+import { TeamName } from "@/components/team-name";
 import { cn } from "@/lib/utils";
 import type {
   MatchScore,
@@ -87,7 +88,7 @@ export function ComputedStandingsCard({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <TeamBadge teamId={row.teamId} name={row.teamName} size="sm" />
+                  <TeamBadge teamId={row.teamId} size="sm" />
                 </TableCell>
                 <TableCell className="text-center">{row.played}</TableCell>
                 <TableCell className="text-center">{row.won}</TableCell>
@@ -115,7 +116,6 @@ export function ScoresTable({
   standingsWrapperClassName,
 }: ScoresTableProps) {
   const t = useTranslations("Groups");
-  const teamNames = new Map(placements.map((t) => [t.teamId, t.teamName]));
 
   return (
     <div className="@container">
@@ -138,7 +138,7 @@ export function ScoresTable({
                   >
                     <span className="flex min-w-0 flex-1 items-center justify-end gap-2 text-sm font-medium">
                       <span className="hidden truncate text-right @[600px]:block">
-                        {teamNames.get(match.homeTeamId) ?? match.homeTeamId}
+                        <TeamName teamId={match.homeTeamId} fallback={match.homeTeamId} />
                       </span>
                       <span className="shrink-0 font-bold @[600px]:hidden">
                         {match.homeTeamId}
@@ -181,7 +181,7 @@ export function ScoresTable({
                     <span className="flex min-w-0 flex-1 items-center gap-2 text-sm font-medium">
                       <TeamFlag teamId={match.awayTeamId} size="md" />
                       <span className="hidden truncate @[600px]:block">
-                        {teamNames.get(match.awayTeamId) ?? match.awayTeamId}
+                        <TeamName teamId={match.awayTeamId} fallback={match.awayTeamId} />
                       </span>
                       <span className="shrink-0 font-bold @[600px]:hidden">
                         {match.awayTeamId}

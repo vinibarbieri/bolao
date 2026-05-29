@@ -44,3 +44,8 @@ project.md
 implementation.md
 
 .claude/
+.agents
+matriz_fifa_oficial.csv
+fifa.py
+scripts
+skills-lock.json

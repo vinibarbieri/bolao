@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { saveBracketPredictions } from "@/app/(app)/actions";
 import { TeamFlag } from "@/components/team-badge";
+import { TeamName } from "@/components/team-name";
 import { cn } from "@/lib/utils";
 import { Trophy, Crown, Save, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
@@ -224,7 +225,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
                   <Crown className="h-4 w-4 shrink-0 text-gold" />
                   <TeamFlag teamId={champion.teamId} size="md" />
                   <span className="truncate text-sm font-bold">
-                    {champion.teamName}
+                    <TeamName teamId={champion.teamId} />
                   </span>
                 </div>
               ) : (
@@ -428,7 +429,7 @@ function TeamSlotButton({
       ) : (
         <span className="h-4 w-6 rounded-[2px] bg-muted" />
       )}
-      <span className="flex-1 truncate text-sm">{team?.teamName ?? "TBD"}</span>
+      <span className="flex-1 truncate text-sm"><TeamName teamId={team?.teamId} /></span>
       {isWinner && <Crown className="h-4 w-4 shrink-0 text-gold" />}
     </button>
   );

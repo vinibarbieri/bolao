@@ -20,6 +20,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamFlag } from "@/components/team-badge";
+import { TeamName } from "@/components/team-name";
 import { cn } from "@/lib/utils";
 import type { TeamPlacement, GroupLetter } from "@/lib/stores/group-simulator-store";
 import { useTranslations } from "next-intl";
@@ -151,7 +152,7 @@ function SortableTeamRow({
         {position}
       </span>
       <TeamFlag teamId={team.teamId} size="md" />
-      <span className="flex-1 truncate font-medium">{team.teamName}</span>
+      <span className="flex-1 truncate font-medium"><TeamName teamId={team.teamId} /></span>
       <span className="font-mono text-xs uppercase text-muted-foreground">
         {team.teamId}
       </span>

@@ -1,5 +1,9 @@
+"use client";
+
+import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 import { isoForFifa } from "@/lib/tournament/flags";
+import { teamDisplayName } from "@/lib/tournament/team-display-name";
 
 const SIZE = {
   sm: { flag: "h-3 w-4 text-[0.6rem]", text: "text-xs" },
@@ -72,8 +76,9 @@ export function TeamBadge({
   showCode = false,
   className,
 }: TeamBadgeProps) {
+  const locale = useLocale();
   const sz = SIZE[size];
-  const label = name ?? teamId ?? "TBD";
+  const label = name ?? (teamId ? teamDisplayName(teamId, locale) : "TBD");
 
   return (
     <span className={cn("inline-flex min-w-0 items-center gap-2", className)}>
