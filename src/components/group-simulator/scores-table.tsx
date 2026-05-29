@@ -60,9 +60,12 @@ export function ScoresTable({
                     key={match.matchId}
                     className="flex items-center gap-2 rounded-lg border bg-background p-2 transition-colors hover:bg-muted/40"
                   >
-                    <span className="flex flex-1 items-center justify-end gap-2 text-sm font-medium">
-                      <span className="truncate text-right">
+                    <span className="flex min-w-0 flex-1 items-center justify-end gap-2 text-sm font-medium">
+                      <span className="hidden truncate text-right @[600px]:block">
                         {teamNames.get(match.homeTeamId) ?? match.homeTeamId}
+                      </span>
+                      <span className="shrink-0 font-bold @[600px]:hidden">
+                        {match.homeTeamId}
                       </span>
                       <TeamFlag teamId={match.homeTeamId} size="md" />
                     </span>
@@ -70,7 +73,7 @@ export function ScoresTable({
                       type="number"
                       min={0}
                       max={20}
-                      className="w-10 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="w-10 shrink-0 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       value={match.homeScore ?? ""}
                       onChange={(e) => {
                         const val = parseInt(e.target.value);
@@ -82,12 +85,12 @@ export function ScoresTable({
                       }}
                       placeholder="-"
                     />
-                    <span className="text-muted-foreground">x</span>
+                    <span className="shrink-0 text-muted-foreground">x</span>
                     <Input
                       type="number"
                       min={0}
                       max={20}
-                      className="w-10 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="w-10 shrink-0 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       value={match.awayScore ?? ""}
                       onChange={(e) => {
                         const val = parseInt(e.target.value);
@@ -99,10 +102,13 @@ export function ScoresTable({
                       }}
                       placeholder="-"
                     />
-                    <span className="flex flex-1 items-center gap-2 text-sm font-medium">
+                    <span className="flex min-w-0 flex-1 items-center gap-2 text-sm font-medium">
                       <TeamFlag teamId={match.awayTeamId} size="md" />
-                      <span className="truncate">
+                      <span className="hidden truncate @[600px]:block">
                         {teamNames.get(match.awayTeamId) ?? match.awayTeamId}
+                      </span>
+                      <span className="shrink-0 font-bold @[600px]:hidden">
+                        {match.awayTeamId}
                       </span>
                     </span>
                   </div>
