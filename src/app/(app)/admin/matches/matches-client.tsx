@@ -72,6 +72,7 @@ interface Match {
   awayTeamId: string | null;
   homeScore: number | null;
   awayScore: number | null;
+  winnerTeamId: string | null;
   motmPlayerId: string | null;
   status: string;
   kickoffAt: Date;
@@ -92,6 +93,7 @@ interface EditState {
   matchId: string;
   homeScore: string;
   awayScore: string;
+  winnerTeamId: string;
   motmPlayerId: string;
 }
 
@@ -115,6 +117,7 @@ export function MatchAdminClient({
       matchId: match.id,
       homeScore: match.homeScore?.toString() ?? "",
       awayScore: match.awayScore?.toString() ?? "",
+      winnerTeamId: match.winnerTeamId ?? "",
       motmPlayerId: match.motmPlayerId ?? "",
     });
   };
@@ -127,6 +130,11 @@ export function MatchAdminClient({
       toast.error(t("invalidScores"));
       return;
     }
+    // A level knockout match needs an explicit advancing team.
+    if (match.stage !== "group" && home === away && !editing.winnerTeamId) {
+      toast.error(t("winnerRequired"));
+      return;
+    }
     try {
       const res = await fetch("/api/admin/match-result", {
         method: "POST",
@@ -135,6 +143,7 @@ export function MatchAdminClient({
           matchId: match.id,
           homeScore: home,
           awayScore: away,
+          winnerTeamId: editing.winnerTeamId || null,
           motmPlayerId: editing.motmPlayerId || null,
         }),
       });
@@ -189,6 +198,34 @@ export function MatchAdminClient({
                 name={teamNameMap.get(match.awayTeamId ?? "")}
               />
             </div>
+
+            {match.stage !== "group" &&
+              editing.homeScore !== "" &&
+              editing.awayScore !== "" &&
+              editing.homeScore === editing.awayScore && (
+                <div className="flex items-center gap-2">
+                  <Label className="shrink-0 text-xs">{t("winner")}</Label>
+                  <select
+                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    value={editing.winnerTeamId || ""}
+                    onChange={(e) =>
+                      setEditing((s) => s && { ...s, winnerTeamId: e.target.value })
+                    }
+                  >
+                    <option value="">{t("selectWinner")}</option>
+                    {match.homeTeamId && (
+                      <option value={match.homeTeamId}>
+                        {teamNameMap.get(match.homeTeamId)}
+                      </option>
+                    )}
+                    {match.awayTeamId && (
+                      <option value={match.awayTeamId}>
+                        {teamNameMap.get(match.awayTeamId)}
+                      </option>
+                    )}
+                  </select>
+                </div>
+              )}
 
             <div className="flex items-center gap-2">
               <Label className="shrink-0 text-xs">{t("motm")}</Label>

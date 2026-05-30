@@ -21,6 +21,7 @@ import { getUser } from "@/lib/supabase/auth";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { getLeaderboard } from "./queries";
+import { deriveKnockoutRounds } from "@/lib/tournament/slot-round";
 
 async function getAuthUserId(): Promise<string> {
   const user = await getUser();
@@ -280,34 +281,11 @@ export async function saveBracketPredictions(
     }
 
     // Derive knockout predictions from bracket picks
-    // For each team, determine which rounds they reached
-    const teamRounds = new Map<string, Set<string>>();
-
-    for (const pick of picks) {
-      const round = slotToRound(pick.bracketSlot);
-      if (!round) continue;
-
-      if (!teamRounds.has(pick.teamId)) {
-        teamRounds.set(pick.teamId, new Set());
-      }
-      teamRounds.get(pick.teamId)!.add(round);
-    }
-
-    const knockoutRows: {
-      userId: string;
-      teamId: string;
-      round: "r32" | "r16" | "qf" | "sf" | "third" | "final" | "champion";
-    }[] = [];
-
-    for (const [teamId, rounds] of teamRounds) {
-      for (const round of rounds) {
-        knockoutRows.push({
-          userId,
-          teamId,
-          round: round as "r32" | "r16" | "qf" | "sf" | "third" | "final" | "champion",
-        });
-      }
-    }
+    const knockoutRows = deriveKnockoutRounds(picks).map((r) => ({
+      userId,
+      teamId: r.teamId,
+      round: r.round,
+    }));
 
     if (knockoutRows.length > 0) {
       await tx.insert(knockoutPredictions).values(knockoutRows);
@@ -315,18 +293,6 @@ export async function saveBracketPredictions(
   });
 
   revalidatePath("/bracket");
-}
-
-function slotToRound(
-  slot: number
-): string | null {
-  if (slot >= 1 && slot <= 16) return "r32";
-  if (slot >= 17 && slot <= 24) return "r16";
-  if (slot >= 25 && slot <= 28) return "qf";
-  if (slot >= 29 && slot <= 30) return "sf";
-  if (slot === 31) return "final";
-  if (slot === 32) return "third";
-  return null;
 }
 
 // === Award Predictions ===

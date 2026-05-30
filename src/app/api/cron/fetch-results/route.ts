@@ -3,6 +3,11 @@ import { db } from "@/db";
 import { matches } from "@/db/schema/matches";
 import { eq, and } from "drizzle-orm";
 import { recalculateAllScores } from "@/lib/scoring/recalculate";
+import {
+  updateGroupStandings,
+  recalculateBestThirds,
+} from "@/lib/scoring/group-standings";
+import { resolveWinner } from "@/lib/tournament/winner";
 
 const FOOTBALL_DATA_API = "https://api.football-data.org/v4";
 
@@ -10,8 +15,8 @@ interface FootballDataMatch {
   id: number;
   status: string;
   score: {
+    winner: "HOME_TEAM" | "AWAY_TEAM" | "DRAW" | null;
     fullTime: { home: number | null; away: number | null };
-    penalties: { home: number | null; away: number | null };
   };
 }
 
@@ -73,24 +78,41 @@ export async function GET(request: Request) {
 
       if (localMatch.length === 0) continue;
 
-      const winnerTeamId =
-        homeScore > awayScore
-          ? localMatch[0].homeTeamId
-          : awayScore > homeScore
-            ? localMatch[0].awayTeamId
+      const local = localMatch[0];
+      const isGroup = local.stage === "group";
+
+      // For a level knockout match, the API `score.winner` decides who advanced.
+      const advancingTeamId =
+        apiMatch.score.winner === "HOME_TEAM"
+          ? local.homeTeamId
+          : apiMatch.score.winner === "AWAY_TEAM"
+            ? local.awayTeamId
             : null;
+
+      const winnerTeamId = resolveWinner({
+        homeScore,
+        awayScore,
+        isGroup,
+        homeTeamId: local.homeTeamId,
+        awayTeamId: local.awayTeamId,
+        advancingTeamId,
+      });
 
       await db
         .update(matches)
         .set({
           homeScore,
           awayScore,
-          homePenalties: apiMatch.score.penalties.home,
-          awayPenalties: apiMatch.score.penalties.away,
           winnerTeamId,
           status: "finished",
         })
-        .where(eq(matches.id, localMatch[0].id));
+        .where(eq(matches.id, local.id));
+
+      // Recompute group standings + best-third rankings for finished group matches.
+      if (local.stage === "group" && local.homeTeamId && local.awayTeamId) {
+        await updateGroupStandings(local.groupLetter!);
+        await recalculateBestThirds();
+      }
 
       updated++;
     }

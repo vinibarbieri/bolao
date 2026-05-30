@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { matches } from "@/db/schema/matches";
-import { groupStandings } from "@/db/schema/teams";
-import { eq, and, asc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { getUser } from "@/lib/supabase/auth";
 import { recalculateAllScores } from "@/lib/scoring/recalculate";
+import {
+  updateGroupStandings,
+  recalculateBestThirds,
+} from "@/lib/scoring/group-standings";
+import { resolveWinner } from "@/lib/tournament/winner";
 
 export async function POST(request: Request) {
   const user = await getUser();
@@ -13,7 +17,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { matchId, homeScore, awayScore, motmPlayerId } = await request.json();
+  const { matchId, homeScore, awayScore, motmPlayerId, winnerTeamId: winnerOverride } =
+    await request.json();
 
   if (typeof homeScore !== "number" || typeof awayScore !== "number") {
     return NextResponse.json({ error: "Invalid scores" }, { status: 400 });
@@ -29,12 +34,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Match not found" }, { status: 404 });
   }
 
-  const winnerTeamId =
-    homeScore > awayScore
-      ? match[0].homeTeamId
-      : awayScore > homeScore
-        ? match[0].awayTeamId
-        : null;
+  const isGroup = match[0].stage === "group";
+
+  // Knockout match level at full time — the advancing team must be supplied.
+  if (
+    !isGroup &&
+    homeScore === awayScore &&
+    winnerOverride !== match[0].homeTeamId &&
+    winnerOverride !== match[0].awayTeamId
+  ) {
+    return NextResponse.json(
+      { error: "winnerTeamId must be one of the match participants" },
+      { status: 400 }
+    );
+  }
+
+  const winnerTeamId = resolveWinner({
+    homeScore,
+    awayScore,
+    isGroup,
+    homeTeamId: match[0].homeTeamId,
+    awayTeamId: match[0].awayTeamId,
+    advancingTeamId: winnerOverride,
+  });
 
   await db
     .update(matches)
@@ -49,134 +71,11 @@ export async function POST(request: Request) {
 
   // If it's a group match, update group standings and best-third rankings
   if (match[0].stage === "group" && match[0].homeTeamId && match[0].awayTeamId) {
-    await updateGroupStandings(
-      match[0].homeTeamId,
-      match[0].awayTeamId,
-      homeScore,
-      awayScore,
-      match[0].groupLetter!
-    );
+    await updateGroupStandings(match[0].groupLetter!);
     await recalculateBestThirds();
   }
 
   await recalculateAllScores();
 
   return NextResponse.json({ success: true });
-}
-
-async function updateGroupStandings(
-  homeTeamId: string,
-  awayTeamId: string,
-  homeScore: number,
-  awayScore: number,
-  groupLetter: string
-) {
-  // Get all finished matches for this group to recompute standings
-  const groupMatches = await db
-    .select()
-    .from(matches)
-    .where(
-      and(
-        eq(matches.stage, "group"),
-        eq(matches.groupLetter, groupLetter),
-        eq(matches.status, "finished")
-      )
-    );
-
-  // Build standings from scratch
-  const stats: Record<
-    string,
-    {
-      played: number;
-      won: number;
-      drawn: number;
-      lost: number;
-      gf: number;
-      ga: number;
-    }
-  > = {};
-
-  for (const m of groupMatches) {
-    if (!m.homeTeamId || !m.awayTeamId || m.homeScore === null || m.awayScore === null)
-      continue;
-
-    for (const teamId of [m.homeTeamId, m.awayTeamId]) {
-      if (!stats[teamId]) {
-        stats[teamId] = { played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0 };
-      }
-    }
-
-    stats[m.homeTeamId].played++;
-    stats[m.awayTeamId].played++;
-    stats[m.homeTeamId].gf += m.homeScore;
-    stats[m.homeTeamId].ga += m.awayScore;
-    stats[m.awayTeamId].gf += m.awayScore;
-    stats[m.awayTeamId].ga += m.homeScore;
-
-    if (m.homeScore > m.awayScore) {
-      stats[m.homeTeamId].won++;
-      stats[m.awayTeamId].lost++;
-    } else if (m.awayScore > m.homeScore) {
-      stats[m.awayTeamId].won++;
-      stats[m.homeTeamId].lost++;
-    } else {
-      stats[m.homeTeamId].drawn++;
-      stats[m.awayTeamId].drawn++;
-    }
-  }
-
-  // Sort and assign positions
-  const sorted = Object.entries(stats)
-    .map(([teamId, s]) => ({
-      teamId,
-      ...s,
-      gd: s.gf - s.ga,
-      points: s.won * 3 + s.drawn,
-    }))
-    .sort((a, b) => b.points - a.points || b.gd - a.gd || b.gf - a.gf);
-
-  for (let i = 0; i < sorted.length; i++) {
-    const s = sorted[i];
-    await db
-      .update(groupStandings)
-      .set({
-        position: i + 1,
-        played: s.played,
-        won: s.won,
-        drawn: s.drawn,
-        lost: s.lost,
-        gf: s.gf,
-        ga: s.ga,
-        gd: s.gd,
-        points: s.points,
-      })
-      .where(eq(groupStandings.teamId, s.teamId));
-  }
-}
-
-// Re-ranks all third-place teams and marks the best 8 as isBestThird.
-// Called after every group match result is entered.
-async function recalculateBestThirds() {
-  const thirds = await db
-    .select()
-    .from(groupStandings)
-    .where(eq(groupStandings.position, 3))
-    .orderBy(asc(groupStandings.points));
-
-  // Sort: points DESC → gd DESC → gf DESC (FIFA tiebreaker)
-  const sorted = [...thirds].sort(
-    (a, b) =>
-      (b.points ?? 0) - (a.points ?? 0) ||
-      (b.gd ?? 0) - (a.gd ?? 0) ||
-      (b.gf ?? 0) - (a.gf ?? 0),
-  );
-
-  const best8 = new Set(sorted.slice(0, 8).map((t) => t.teamId));
-
-  for (const team of thirds) {
-    await db
-      .update(groupStandings)
-      .set({ isBestThird: best8.has(team.teamId) })
-      .where(eq(groupStandings.teamId, team.teamId));
-  }
 }
