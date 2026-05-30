@@ -39,7 +39,13 @@
     "buildBracket": "Montar seu chaveamento eliminatório",
     "pickAwards": "Escolher vencedores dos prêmios",
     "selectGoldenTrio": "Selecionar seu Trio de Ouro",
-    "joinOrCreateLeague": "Entrar ou criar uma liga"
+    "joinOrCreateLeague": "Entrar ou criar uma liga",
+    "leaderboardTitle": "Classificação da Liga",
+    "leaderboardSubtitle": "Veja sua posição na liga",
+    "noScores": "Ainda sem pontuação.",
+    "rank": "#",
+    "player": "Jogador",
+    "points": "Pontos"
   },
   "Groups": {
     "title": "Fase de Grupos",
@@ -156,7 +162,14 @@
     "saving": "Salvando…",
     "saveChanges": "Salvar alterações",
     "nameUpdated": "Nome de exibição atualizado!",
-    "failedUpdate": "Falha ao atualizar o nome."
+    "failedUpdate": "Falha ao atualizar o nome.",
+    "visibilityTitle": "Visibilidade dos palpites",
+    "visibilityDescription": "Escolha se os membros da liga podem ver seus palpites antes da Copa começar. Quando começar, todos os palpites ficam públicos.",
+    "visibilityOn": "Palpites públicos",
+    "visibilityOff": "Palpites privados",
+    "visibilityPublic": "Palpites agora são públicos",
+    "visibilityPrivate": "Palpites agora são privados",
+    "visibilityLocked": "O torneio começou — todos os palpites agora são públicos."
   },
   "Admin": {
     "title": "Painel Admin",
@@ -216,7 +229,9 @@
     "viewingPredictions": "Visualizando previsões e pontuações",
     "scoreBreakdown": "Detalhamento de Pontuação",
     "groupPredictions": "Previsões dos Grupos",
-    "group": "Grupo {letter}"
+    "group": "Grupo {letter}",
+    "privateTitle": "Palpites privados",
+    "privateDescription": "{name} ainda não tornou os palpites públicos. Eles ficarão visíveis quando a Copa começar."
   },
   "Login": {
     "subtitle": "Jogo de previsões da Copa do Mundo para amigos",

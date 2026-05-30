@@ -3,6 +3,8 @@ import {
   getUserGroupPredictions,
   getUserBracketPicks,
   getUserScoreBreakdown,
+  getPredictionVisibility,
+  getTournamentConfig,
 } from "../../queries";
 import { db } from "@/db";
 import { profiles } from "@/db/schema/profiles";
@@ -17,7 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TeamFlag } from "@/components/team-badge";
-import { ListChecks, Volleyball } from "lucide-react";
+import { ListChecks, Volleyball, Lock } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 export default async function ComparePage({
@@ -36,6 +38,43 @@ export default async function ComparePage({
     .limit(1);
 
   if (profile.length === 0) notFound();
+
+  // Visibility gate: own predictions always visible; others only if the user
+  // made them public, or once the tournament has started (predictions locked).
+  const isSelf = compareUserId === currentUser.id;
+  const [visibility, config] = await Promise.all([
+    getPredictionVisibility(compareUserId),
+    getTournamentConfig(),
+  ]);
+  const canView =
+    isSelf || (visibility?.isPublic ?? false) || (config?.isLocked ?? false);
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12 ring-2 ring-border">
+            <AvatarImage src={profile[0].avatarUrl ?? undefined} />
+            <AvatarFallback className="bg-brand-gradient font-bold text-brand-foreground">
+              {profile[0].displayName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <h1 className="font-heading text-3xl font-bold uppercase tracking-wide sm:text-4xl">
+            {t("predictions", { name: profile[0].displayName })}
+          </h1>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+            <Lock className="h-10 w-10 text-muted-foreground" />
+            <p className="font-medium">{t("privateTitle")}</p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              {t("privateDescription", { name: profile[0].displayName })}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const [predictions, bracketPicks, scoreBreakdown] = await Promise.all([
     getUserGroupPredictions(compareUserId),

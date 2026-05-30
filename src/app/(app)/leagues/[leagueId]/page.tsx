@@ -25,6 +25,8 @@ import { Trophy, Crown, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
 import { CopyInviteLink } from "../copy-invite-link";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 export default async function LeagueDetailPage({
   params,
@@ -156,9 +158,10 @@ export default async function LeagueDetailPage({
         <CardContent>
           <div className="space-y-2">
             {members.map((member) => (
-              <div
+              <Link
                 key={member.userId}
-                className="flex items-center gap-3 rounded-lg border px-3 py-2"
+                href={`/compare/${member.userId}`}
+                className="group flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors hover:border-primary/50 hover:bg-accent"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={member.avatarUrl ?? undefined} />
@@ -170,7 +173,8 @@ export default async function LeagueDetailPage({
                   {member.displayName}
                 </span>
                 <Badge variant="outline">{member.status}</Badge>
-              </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </Link>
             ))}
           </div>
         </CardContent>

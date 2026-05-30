@@ -39,7 +39,13 @@
     "buildBracket": "Build your knockout bracket",
     "pickAwards": "Pick award winners",
     "selectGoldenTrio": "Select your Golden Trio",
-    "joinOrCreateLeague": "Join or create a league"
+    "joinOrCreateLeague": "Join or create a league",
+    "leaderboardTitle": "League Leaderboard",
+    "leaderboardSubtitle": "See how you rank against your league",
+    "noScores": "No scores yet.",
+    "rank": "#",
+    "player": "Player",
+    "points": "Points"
   },
   "Groups": {
     "title": "Group Stage",
@@ -156,7 +162,14 @@
     "saving": "Saving…",
     "saveChanges": "Save changes",
     "nameUpdated": "Display name updated!",
-    "failedUpdate": "Failed to update name."
+    "failedUpdate": "Failed to update name.",
+    "visibilityTitle": "Prediction visibility",
+    "visibilityDescription": "Choose whether league members can see your predictions before the World Cup starts. Once it starts, all predictions become public.",
+    "visibilityOn": "Predictions are public",
+    "visibilityOff": "Predictions are private",
+    "visibilityPublic": "Predictions are now public",
+    "visibilityPrivate": "Predictions are now private",
+    "visibilityLocked": "The tournament has started — all predictions are now public."
   },
   "Admin": {
     "title": "Admin Panel",
@@ -216,7 +229,9 @@
     "viewingPredictions": "Viewing predictions and scores",
     "scoreBreakdown": "Score Breakdown",
     "groupPredictions": "Group Predictions",
-    "group": "Group {letter}"
+    "group": "Group {letter}",
+    "privateTitle": "Predictions are private",
+    "privateDescription": "{name} hasn't made their predictions public yet. They'll be visible once the World Cup starts."
   },
   "Login": {
     "subtitle": "World Cup prediction game for friends",

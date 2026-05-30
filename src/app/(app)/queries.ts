@@ -136,6 +136,15 @@ export async function getTournamentConfig() {
   return config[0] ?? null;
 }
 
+export async function getPredictionVisibility(userId: string) {
+  const row = await db
+    .select()
+    .from(predictionVisibility)
+    .where(eq(predictionVisibility.userId, userId))
+    .limit(1);
+  return row[0] ?? null;
+}
+
 export async function getAllPlayers() {
   return db.select().from(players).orderBy(asc(players.name));
 }

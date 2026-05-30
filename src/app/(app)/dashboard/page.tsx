@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/supabase/auth";
 import { ensureProfile } from "../actions";
-import { getUserLeagues, getTournamentConfig, getUserGroupPredictions, getUserBracketPicks, getUserAwardPredictions, getUserGoldenTrio } from "../queries";
+import { getUserLeagues, getTournamentConfig, getUserGroupPredictions, getUserBracketPicks, getUserAwardPredictions, getUserGoldenTrio, getLeaderboard } from "../queries";
+import { LeagueLeaderboard } from "./league-leaderboard";
 import {
   Card,
   CardContent,
@@ -38,6 +39,11 @@ export default async function DashboardPage() {
     getUserAwardPredictions(user.id),
     getUserGoldenTrio(user.id),
   ]);
+
+  const initialLeagueId = leagues[0]?.id ?? null;
+  const initialLeaderboard = initialLeagueId
+    ? await getLeaderboard(initialLeagueId)
+    : [];
 
   const isLocked = config?.isLocked ?? false;
   const groupsCompleted = new Set(groupPreds.map((p) => p.groupLetter)).size;
@@ -142,6 +148,14 @@ export default async function DashboardPage() {
           tint="text-chart-5"
         />
       </div>
+
+      {initialLeagueId && (
+        <LeagueLeaderboard
+          leagues={leagues.map((l) => ({ id: l.id, name: l.name }))}
+          initialLeagueId={initialLeagueId}
+          initialLeaderboard={initialLeaderboard}
+        />
+      )}
 
       {!isLocked && (
         <Card>

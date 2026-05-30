@@ -20,11 +20,31 @@ import { eq, and, sql, inArray } from "drizzle-orm";
 import { getUser } from "@/lib/supabase/auth";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
+import { getLeaderboard } from "./queries";
 
 async function getAuthUserId(): Promise<string> {
   const user = await getUser();
   if (!user) throw new Error("Not authenticated");
   return user.id;
+}
+
+export async function fetchLeagueLeaderboard(leagueId: string) {
+  const userId = await getAuthUserId();
+  const membership = await db
+    .select({ id: leagueMembers.userId })
+    .from(leagueMembers)
+    .where(
+      and(
+        eq(leagueMembers.leagueId, leagueId),
+        eq(leagueMembers.userId, userId),
+        eq(leagueMembers.status, "accepted")
+      )
+    )
+    .limit(1);
+  if (membership.length === 0) {
+    throw new Error("Not a member of this league");
+  }
+  return getLeaderboard(leagueId);
 }
 
 async function checkNotLocked() {
@@ -79,6 +99,23 @@ export async function updateDisplayName(displayName: string) {
     .set({ displayName: trimmed })
     .where(eq(profiles.id, userId));
   revalidatePath("/", "layout");
+}
+
+// Toggle whether the user's predictions are visible to league members before
+// the tournament starts. After lock, all predictions are public regardless.
+export async function setPredictionVisibility(isPublic: boolean) {
+  const userId = await getAuthUserId();
+  await checkNotLocked();
+
+  await db
+    .insert(predictionVisibility)
+    .values({ userId, isPublic })
+    .onConflictDoUpdate({
+      target: predictionVisibility.userId,
+      set: { isPublic },
+    });
+
+  revalidatePath("/settings");
 }
 
 // === Group Predictions ===
