@@ -68,7 +68,9 @@ export function LeagueLeaderboard({
           {leagues.length > 1 && (
             <Select value={leagueId} onValueChange={handleChange}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue />
+                <SelectValue>
+                  {leagues.find((l) => l.id === leagueId)?.name}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {leagues.map((l) => (
