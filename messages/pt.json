@@ -108,6 +108,7 @@
     "unsavedChanges": "Alterações não salvas",
     "saved": "Chaveamento salvo",
     "bracketSaved": "Chaveamento salvo!",
+    "bracketReconciled": "Alguns palpites do mata-mata foram redefinidos porque suas previsões de grupo mudaram. Revise e salve.",
     "ptsEarned": "+{points} pts ganhos",
     "pickWinner": "Escolha o vencedor",
     "champion": "Campeão",

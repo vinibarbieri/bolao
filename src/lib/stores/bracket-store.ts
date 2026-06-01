@@ -18,6 +18,7 @@ interface BracketActions {
   clearSlot(slot: number): void;
   clearBracket(): void;
   markClean(): void;
+  markDirty(): void;
 }
 
 type BracketStore = BracketState & BracketActions;
@@ -121,5 +122,9 @@ export const useBracketStore = create<BracketStore>((set, get) => ({
 
   markClean() {
     set({ isDirty: false });
+  },
+
+  markDirty() {
+    set({ isDirty: true });
   },
 }));

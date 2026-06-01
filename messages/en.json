@@ -108,6 +108,7 @@
     "unsavedChanges": "Unsaved changes",
     "saved": "Bracket saved",
     "bracketSaved": "Bracket saved!",
+    "bracketReconciled": "Some knockout picks were reset because your group predictions changed. Review and save.",
     "ptsEarned": "+{points} pts earned",
     "pickWinner": "Pick the winner",
     "champion": "Champion",

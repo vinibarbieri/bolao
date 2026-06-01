@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useBracketStore, type BracketTeam } from "@/lib/stores/bracket-store";
-import { type R32Matchup, BRACKET_STRUCTURE } from "@/lib/tournament/bracket-mapping";
+import { type R32Matchup } from "@/lib/tournament/bracket-mapping";
+import {
+  reconcileBracketPicks,
+  feederSlots,
+  r32HomeKey,
+  r32AwayKey,
+} from "@/lib/tournament/reconcile-bracket";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { saveBracketPredictions } from "@/app/(app)/actions";
@@ -24,9 +30,6 @@ interface Props {
   /** Render the bracket without editing controls (e.g. viewing another user). */
   readOnly?: boolean;
 }
-
-function r32HomeKey(slot: number) { return slot * 100 + 1; }
-function r32AwayKey(slot: number) { return slot * 100 + 2; }
 
 function sourceString(source: { type: string; group: string }): string {
   const positionMap: Record<string, string> = {
@@ -92,8 +95,27 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
       }
     }
 
+    // Prune saved winner picks that no longer match the current R32 base (the
+    // group predictions changed since the bracket was last saved).
+    const r32Base: Record<number, string> = {};
+    const savedSlots: Record<number, string> = {};
+    for (const [key, team] of Object.entries(picks)) {
+      if (!team) continue;
+      const n = parseInt(key);
+      if (n > 32) r32Base[n] = team.teamId;
+      else savedSlots[n] = team.teamId;
+    }
+    const { prunedSlots } = reconcileBracketPicks(r32Base, savedSlots);
+    for (const slot of prunedSlots) {
+      picks[slot] = null;
+    }
+
     store.initialize(picks);
-  }, [r32Teams, existingPicks, resolvedMatchups, store]);
+    if (prunedSlots.length > 0) {
+      store.markDirty();
+      toast.info(t("bracketReconciled"));
+    }
+  }, [r32Teams, existingPicks, resolvedMatchups, store, t]);
 
   const handleAdvance = useCallback(
     (fromSlot: number, toSlot: number) => {
@@ -138,30 +160,14 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
     return <div className="text-muted-foreground">{t("loadingBracket")}</div>;
   }
 
-  const renderSlotCard = (slotNumber: number, mirror = false) => {
-    const r32 = resolvedMatchups.find((m) => m.slot === slotNumber);
-    let s1: number;
-    let s2: number;
+  // teamId view of the current picks, for feeder resolution (third-place match).
+  const teamIdPicks: Record<number, string> = {};
+  for (const [key, team] of Object.entries(store.picks)) {
+    if (team) teamIdPicks[parseInt(key)] = team.teamId;
+  }
 
-    if (r32) {
-      s1 = r32HomeKey(slotNumber);
-      s2 = r32AwayKey(slotNumber);
-    } else {
-      const slot = BRACKET_STRUCTURE.find((s) => s.slotNumber === slotNumber)!;
-      if (slot.round === "third") {
-        const [sf1, sf2] = slot.sourceSlots!;
-        const sf1Struct = BRACKET_STRUCTURE.find((s) => s.slotNumber === sf1)!;
-        const sf2Struct = BRACKET_STRUCTURE.find((s) => s.slotNumber === sf2)!;
-        const [sf1Src1, sf1Src2] = sf1Struct.sourceSlots!;
-        const [sf2Src1, sf2Src2] = sf2Struct.sourceSlots!;
-        const sf1Winner = store.picks[sf1];
-        const sf2Winner = store.picks[sf2];
-        s1 = sf1Winner ? (store.picks[sf1Src1]?.teamId === sf1Winner.teamId ? sf1Src2 : sf1Src1) : -1;
-        s2 = sf2Winner ? (store.picks[sf2Src1]?.teamId === sf2Winner.teamId ? sf2Src2 : sf2Src1) : -2;
-      } else {
-        [s1, s2] = slot.sourceSlots!;
-      }
-    }
+  const renderSlotCard = (slotNumber: number, mirror = false) => {
+    const [s1, s2] = feederSlots(slotNumber, teamIdPicks);
 
     return (
       <MatchupCard

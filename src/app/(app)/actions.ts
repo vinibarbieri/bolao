@@ -22,6 +22,7 @@ import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { getLeaderboard } from "./queries";
 import { deriveKnockoutRounds } from "@/lib/tournament/slot-round";
+import { buildR32Base, reconcileBracketPicks } from "@/lib/tournament/reconcile-bracket";
 
 async function getAuthUserId(): Promise<string> {
   const user = await getUser();
@@ -209,6 +210,63 @@ export async function saveThirdPlaceSelections(teamIds: string[]) {
             eq(groupPredictions.predictedPosition, 3)
           )
         );
+    }
+
+    // The R32 base is now fully determined. Prune any saved bracket picks that
+    // no longer match it (the group predictions changed since the bracket was
+    // last saved) and re-derive the knockout predictions used for scoring.
+    const preds = await tx
+      .select({
+        teamId: groupPredictions.teamId,
+        groupLetter: groupPredictions.groupLetter,
+        predictedPosition: groupPredictions.predictedPosition,
+        advancesAsThird: groupPredictions.advancesAsThird,
+      })
+      .from(groupPredictions)
+      .where(eq(groupPredictions.userId, userId));
+
+    const r32Base = buildR32Base(preds);
+
+    const savedPicks = await tx
+      .select({ bracketSlot: bracketPicks.bracketSlot, teamId: bracketPicks.teamId })
+      .from(bracketPicks)
+      .where(eq(bracketPicks.userId, userId));
+
+    if (savedPicks.length > 0) {
+      const savedSlots: Record<number, string> = {};
+      for (const p of savedPicks) savedSlots[p.bracketSlot] = p.teamId;
+
+      const { prunedSlots } = reconcileBracketPicks(r32Base, savedSlots);
+
+      if (prunedSlots.length > 0) {
+        await tx
+          .delete(bracketPicks)
+          .where(
+            and(
+              eq(bracketPicks.userId, userId),
+              inArray(bracketPicks.bracketSlot, prunedSlots)
+            )
+          );
+
+        // Re-derive knockout predictions from the surviving picks.
+        await tx
+          .delete(knockoutPredictions)
+          .where(eq(knockoutPredictions.userId, userId));
+
+        const survivors = savedPicks
+          .filter((p) => !prunedSlots.includes(p.bracketSlot))
+          .map((p) => ({ bracketSlot: p.bracketSlot, teamId: p.teamId }));
+
+        const knockoutRows = deriveKnockoutRounds(survivors).map((r) => ({
+          userId,
+          teamId: r.teamId,
+          round: r.round,
+        }));
+
+        if (knockoutRows.length > 0) {
+          await tx.insert(knockoutPredictions).values(knockoutRows);
+        }
+      }
     }
   });
 
