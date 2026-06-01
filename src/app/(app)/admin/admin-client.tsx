@@ -40,6 +40,7 @@ export function AdminClient({
   const t = useTranslations("Admin");
   const [locking, setLocking] = useState(false);
   const [syncingPlayers, setSyncingPlayers] = useState(false);
+  const [syncingMatches, setSyncingMatches] = useState(false);
 
   const handleLockPredictions = async () => {
     setLocking(true);
@@ -75,6 +76,29 @@ export function AdminClient({
       );
     } finally {
       setSyncingPlayers(false);
+    }
+  };
+
+  const handleSyncMatches = async () => {
+    setSyncingMatches(true);
+    try {
+      const res = await fetch("/api/admin/sync-matches", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? t("failedSyncMatches"));
+      toast.success(
+        t("syncedMatches", { linked: data.linked, results: data.resultsApplied }),
+      );
+      if (data.unmatchedMatches?.length) {
+        toast.warning(
+          t("unmatchedMatches", { count: data.unmatchedMatches.length }),
+        );
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : t("failedSyncMatches"),
+      );
+    } finally {
+      setSyncingMatches(false);
     }
   };
 
@@ -214,6 +238,27 @@ export function AdminClient({
             >
               <Users className="h-4 w-4" />
               {syncingPlayers ? t("syncing") : t("syncPlayers")}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <CalendarClock className="h-5 w-5 text-chart-2" />
+              {t("syncMatches")}
+            </CardTitle>
+            <CardDescription>{t("importFixtures")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={handleSyncMatches}
+              disabled={syncingMatches}
+              variant="secondary"
+              className="w-full gap-2"
+            >
+              <CalendarClock className="h-4 w-4" />
+              {syncingMatches ? t("syncing") : t("syncMatches")}
             </Button>
           </CardContent>
         </Card>

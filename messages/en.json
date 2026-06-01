@@ -201,7 +201,12 @@
     "failedSync": "Failed to sync players",
     "failedLockGeneric": "Failed to lock",
     "syncedPlayers": "Players synced: {inserted} new, {updated} updated",
-    "unmatchedTeams": "Unmatched teams: {teams}"
+    "unmatchedTeams": "Unmatched teams: {teams}",
+    "syncMatches": "Sync Matches",
+    "importFixtures": "Pull fixtures, results & knockout teams from the API",
+    "failedSyncMatches": "Failed to sync matches",
+    "syncedMatches": "Matches synced: {linked} linked, {results} results applied",
+    "unmatchedMatches": "{count} API matches could not be matched to a local fixture"
   },
   "AdminMatches": {
     "title": "Match Management",

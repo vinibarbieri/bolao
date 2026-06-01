@@ -1,0 +1,24 @@
+name: Fetch Match Results
+
+on:
+  schedule:
+    # Hourly. GitHub cron is UTC and may drift a few minutes under load.
+    - cron: "0 * * * *"
+  workflow_dispatch: {} # manual "Run workflow" button in the Actions tab
+
+jobs:
+  fetch-results:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger results sync
+        run: |
+          status=$(curl -sS -o /tmp/body -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/fetch-results")
+          echo "HTTP $status"
+          cat /tmp/body
+          echo
+          if [ "$status" -ge 400 ]; then
+            echo "::error::Sync failed with HTTP $status"
+            exit 1
+          fi

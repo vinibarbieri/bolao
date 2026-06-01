@@ -201,7 +201,12 @@
     "failedSync": "Falha ao sincronizar jogadores",
     "failedLockGeneric": "Falha ao bloquear",
     "syncedPlayers": "Jogadores sincronizados: {inserted} novos, {updated} atualizados",
-    "unmatchedTeams": "Times sem correspondência: {teams}"
+    "unmatchedTeams": "Times sem correspondência: {teams}",
+    "syncMatches": "Sincronizar Partidas",
+    "importFixtures": "Buscar jogos, resultados e times do mata-mata pela API",
+    "failedSyncMatches": "Falha ao sincronizar partidas",
+    "syncedMatches": "Partidas sincronizadas: {linked} vinculadas, {results} resultados aplicados",
+    "unmatchedMatches": "{count} partidas da API não puderam ser associadas a um jogo local"
   },
   "AdminMatches": {
     "title": "Gerenciamento de Partidas",

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { players } from "@/db/schema/matches";
 import { teams } from "@/db/schema/teams";
+import { buildTeamResolver } from "@/lib/teams/resolve";
 
 const FOOTBALL_DATA_API = "https://api.football-data.org/v4";
 
@@ -28,13 +29,6 @@ export interface SyncPlayersResult {
   totalApiPlayers: number;
 }
 
-// football-data.org uses ISO-3166 three-letter codes for a few teams where
-// our local DB uses the FIFA code instead. Only Uruguay differs today, but the
-// alias table keeps the mapping explicit and easy to extend.
-const TLA_TO_TEAM_ID: Record<string, string> = {
-  URY: "URU", // Uruguay: ISO URY -> FIFA URU
-};
-
 // Maps football-data's granular position labels onto our GK/DF/MF/FW enum.
 function mapPosition(raw: string | null): PlayerPosition {
   if (!raw) return "MF";
@@ -52,14 +46,6 @@ function mapPosition(raw: string | null): PlayerPosition {
   )
     return "FW";
   return "MF";
-}
-
-function normalizeName(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z]/g, "");
 }
 
 /**
@@ -91,18 +77,7 @@ export async function syncWorldCupPlayers(): Promise<SyncPlayersResult> {
 
   // Build lookup tables to resolve an API team to a local team id.
   const localTeams = await db.select().from(teams);
-  const byId = new Set(localTeams.map((t) => t.id));
-  const byName = new Map(localTeams.map((t) => [normalizeName(t.name), t.id]));
-
-  function resolveTeamId(t: FootballDataTeam): string | null {
-    const tla = t.tla?.toUpperCase();
-    if (tla) {
-      const aliased = TLA_TO_TEAM_ID[tla];
-      if (aliased && byId.has(aliased)) return aliased;
-      if (byId.has(tla)) return tla;
-    }
-    return byName.get(normalizeName(t.name)) ?? null;
-  }
+  const resolveTeamId = buildTeamResolver(localTeams);
 
   // Snapshot existing players so we can update in place by external id.
   const existing = await db.select().from(players);
