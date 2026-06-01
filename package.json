@@ -14,6 +14,7 @@
     "db:push": "drizzle-kit push",
     "db:seed": "npx tsx src/db/seed/index.ts",
     "db:seed:players": "npx tsx src/db/seed/players.ts",
+    "db:simulate": "npx tsx src/db/seed/simulate-results.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
