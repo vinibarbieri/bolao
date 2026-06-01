@@ -143,8 +143,8 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
         const [sf2Src1, sf2Src2] = sf2Struct.sourceSlots!;
         const sf1Winner = store.picks[sf1];
         const sf2Winner = store.picks[sf2];
-        s1 = sf1Winner && store.picks[sf1Src1]?.teamId === sf1Winner.teamId ? sf1Src2 : sf1Src1;
-        s2 = sf2Winner && store.picks[sf2Src1]?.teamId === sf2Winner.teamId ? sf2Src2 : sf2Src1;
+        s1 = sf1Winner ? (store.picks[sf1Src1]?.teamId === sf1Winner.teamId ? sf1Src2 : sf1Src1) : -1;
+        s2 = sf2Winner ? (store.picks[sf2Src1]?.teamId === sf2Winner.teamId ? sf2Src2 : sf2Src1) : -2;
       } else {
         [s1, s2] = slot.sourceSlots!;
       }
