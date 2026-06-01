@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { saveGoldenTrio } from "@/app/(app)/actions";
 import { TeamFlag } from "@/components/team-badge";
 import { cn } from "@/lib/utils";
-import { Star, X, Plus, Save, Search } from "lucide-react";
+import { Star, X, Plus, Save, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -236,7 +236,11 @@ export function GoldenTrioClient({
           disabled={saving || picks.filter(Boolean).length !== 3}
           className="gap-2"
         >
-          <Save className="h-4 w-4" />
+          {saving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
           {saving ? t("saving") : t("saveGoldenTrio")}
         </Button>
         <span className="text-sm text-muted-foreground">

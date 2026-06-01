@@ -11,7 +11,7 @@ import { ScoresTable, ComputedStandingsCard } from "./scores-table";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { saveGroupPredictions, saveScorePredictions } from "@/app/(app)/actions";
-import { Save, ChevronLeft, ChevronRight } from "lucide-react";
+import { Save, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -45,6 +45,7 @@ export function GroupSimulatorClient({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -83,6 +84,7 @@ export function GroupSimulatorClient({
   }, []);
 
   const handleSave = useCallback(async () => {
+    setSaving(true);
     try {
       const data = GROUP_LETTERS.map((letter) => ({
         groupLetter: letter,
@@ -114,6 +116,8 @@ export function GroupSimulatorClient({
       toast.error(
         error instanceof Error ? error.message : "Failed to save predictions"
       );
+    } finally {
+      setSaving(false);
     }
   }, [store, t]);
 
@@ -264,9 +268,17 @@ export function GroupSimulatorClient({
       </Tabs>
 
       <div className="sticky bottom-4 flex items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
-        <Button onClick={handleSave} disabled={!store.isDirty} className="gap-2">
-          <Save className="h-4 w-4" />
-          {t("saveAll")}
+        <Button
+          onClick={handleSave}
+          disabled={!store.isDirty || saving}
+          className="gap-2"
+        >
+          {saving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+          {saving ? t("saving") : t("saveAll")}
         </Button>
         {store.isDirty ? (
           <span className="flex items-center gap-1.5 text-sm font-medium text-third-foreground">

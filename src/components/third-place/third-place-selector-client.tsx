@@ -8,7 +8,7 @@ import { saveThirdPlaceSelections } from "@/app/(app)/actions";
 import { TeamFlag } from "@/components/team-badge";
 import { TeamName } from "@/components/team-name";
 import { cn } from "@/lib/utils";
-import { Check, Medal, ArrowRight } from "lucide-react";
+import { Check, Medal, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -93,6 +93,7 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
           disabled={!complete || saving}
           className="gap-2"
         >
+          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
           {saving ? t("saving") : t("saveAndBuild")}
           {!saving && <ArrowRight className="h-4 w-4" />}
         </Button>

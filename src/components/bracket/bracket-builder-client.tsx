@@ -9,7 +9,7 @@ import { saveBracketPredictions } from "@/app/(app)/actions";
 import { TeamFlag } from "@/components/team-badge";
 import { TeamName } from "@/components/team-name";
 import { cn } from "@/lib/utils";
-import { Trophy, Crown, Save, RotateCcw } from "lucide-react";
+import { Trophy, Crown, Save, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTranslations } from "next-intl";
@@ -179,7 +179,11 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           disabled={!store.isDirty || saving}
           className="gap-2"
         >
-          <Save className="h-4 w-4" />
+          {saving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
           {saving ? t("saving") : store.isDirty ? t("saveBracket") : t("saved")}
         </Button>
         <Button

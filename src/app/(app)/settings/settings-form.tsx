@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 
 export function SettingsForm({ currentName }: { currentName: string }) {
   const t = useTranslations("Settings");
@@ -38,7 +39,12 @@ export function SettingsForm({ currentName }: { currentName: string }) {
         />
         <p className="text-xs text-muted-foreground">{t("nameHint")}</p>
       </div>
-      <Button type="submit" disabled={isPending || name.trim() === currentName}>
+      <Button
+        type="submit"
+        disabled={isPending || name.trim() === currentName}
+        className="gap-2"
+      >
+        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
         {isPending ? t("saving") : t("saveChanges")}
       </Button>
     </form>

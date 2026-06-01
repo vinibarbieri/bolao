@@ -21,6 +21,7 @@ import {
   Sparkles,
   Check,
   Save,
+  Loader2,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -227,7 +228,11 @@ export function AwardsPredictionClient({
 
       <div className="sticky bottom-4 flex items-center rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
         <Button onClick={handleSave} disabled={saving} className="gap-2">
-          <Save className="h-4 w-4" />
+          {saving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
           {saving ? t("saving") : t("saveAwards")}
         </Button>
       </div>
