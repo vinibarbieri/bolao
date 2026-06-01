@@ -242,7 +242,7 @@
     "privateDescription": "{name} ainda não tornou os palpites públicos. Eles ficarão visíveis quando a Copa começar."
   },
   "Login": {
-    "subtitle": "Jogo de previsões da Copa do Mundo para amigos",
+    "subtitle": "Jogo de previsões da Copa do Mundo",
     "devMode": "Modo dev — login com email/senha",
     "email": "Email",
     "password": "Senha",

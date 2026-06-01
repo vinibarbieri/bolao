@@ -242,7 +242,7 @@
     "privateDescription": "{name} hasn't made their predictions public yet. They'll be visible once the World Cup starts."
   },
   "Login": {
-    "subtitle": "World Cup prediction game for friends",
+    "subtitle": "World Cup prediction game",
     "devMode": "Dev mode — email/password login",
     "email": "Email",
     "password": "Password",
