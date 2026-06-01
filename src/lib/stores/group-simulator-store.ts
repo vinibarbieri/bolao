@@ -63,8 +63,8 @@ interface GroupSimulatorActions {
   setScore(
     group: GroupLetter,
     matchId: string,
-    homeScore: number,
-    awayScore: number
+    homeScore: number | null,
+    awayScore: number | null
   ): void;
   syncFromScores(group: GroupLetter): void;
   toggleThirdPlace(teamId: string): void;
@@ -158,7 +158,7 @@ export const useGroupSimulatorStore = create<GroupSimulatorStore>(
       });
     },
 
-    setScore(group, matchId, homeScore, awayScore) {
+    setScore(group, matchId, homeScore: number | null, awayScore: number | null) {
       set((state) => {
         const updatedScores = state.scores[group].map((s) =>
           s.matchId === matchId ? { ...s, homeScore, awayScore } : s

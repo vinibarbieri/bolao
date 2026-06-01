@@ -28,8 +28,8 @@ interface ScoresTableProps {
   placements: TeamPlacement[];
   onScoreChange: (
     matchId: string,
-    homeScore: number,
-    awayScore: number
+    homeScore: number | null,
+    awayScore: number | null
   ) => void;
   standingsWrapperClassName?: string;
 }
@@ -152,11 +152,15 @@ export function ScoresTable({
                       className="w-10 shrink-0 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       value={match.homeScore ?? ""}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        if (!isNaN(val) && match.awayScore !== null) {
+                        const raw = e.target.value;
+                        const val = raw === "" ? null : parseInt(raw);
+                        if (val === null || !isNaN(val)) {
                           onScoreChange(match.matchId, val, match.awayScore);
-                        } else if (!isNaN(val)) {
-                          onScoreChange(match.matchId, val, 0);
+                        }
+                      }}
+                      onBlur={() => {
+                        if (match.homeScore === null) {
+                          onScoreChange(match.matchId, 0, match.awayScore);
                         }
                       }}
                       placeholder="-"
@@ -169,11 +173,15 @@ export function ScoresTable({
                       className="w-10 shrink-0 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       value={match.awayScore ?? ""}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        if (!isNaN(val) && match.homeScore !== null) {
+                        const raw = e.target.value;
+                        const val = raw === "" ? null : parseInt(raw);
+                        if (val === null || !isNaN(val)) {
                           onScoreChange(match.matchId, match.homeScore, val);
-                        } else if (!isNaN(val)) {
-                          onScoreChange(match.matchId, 0, val);
+                        }
+                      }}
+                      onBlur={() => {
+                        if (match.awayScore === null) {
+                          onScoreChange(match.matchId, match.homeScore, 0);
                         }
                       }}
                       placeholder="-"
