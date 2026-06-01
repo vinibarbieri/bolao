@@ -82,7 +82,11 @@
     "matches": "Partidas do Grupo {letter}",
     "noMatches": "Nenhuma partida disponível para este grupo ainda.",
     "computedStandings": "Classificação Calculada",
-    "groupSaved": "Previsões dos grupos salvas!"
+    "groupSaved": "Previsões dos grupos salvas!",
+    "thirdPromptTitle": "Previsões dos grupos salvas!",
+    "thirdPromptDescription": "Agora escolha os 8 melhores terceiros colocados para continuar sua previsão até a fase eliminatória.",
+    "thirdPromptConfirm": "Escolher 3º lugares",
+    "thirdPromptLater": "Depois"
   },
   "ThirdPlace": {
     "title": "Seleção do 3º Lugar",

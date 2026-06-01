@@ -82,7 +82,11 @@
     "matches": "Group {letter} Matches",
     "noMatches": "No matches available for this group yet.",
     "computedStandings": "Computed Standings",
-    "groupSaved": "Group predictions saved!"
+    "groupSaved": "Group predictions saved!",
+    "thirdPromptTitle": "Group predictions saved!",
+    "thirdPromptDescription": "Now pick the 8 best third-place teams so you can continue your prediction through the knockout stage.",
+    "thirdPromptConfirm": "Pick 3rd places",
+    "thirdPromptLater": "Later"
   },
   "ThirdPlace": {
     "title": "3rd Place Selection",
