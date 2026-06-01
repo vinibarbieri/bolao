@@ -21,6 +21,8 @@ interface Props {
   resolvedMatchups: R32Matchup[];
   knockoutRoundPoints?: Record<string, number>;
   knockoutPointsConfig?: Record<string, number>;
+  /** Render the bracket without editing controls (e.g. viewing another user). */
+  readOnly?: boolean;
 }
 
 function r32HomeKey(slot: number) { return slot * 100 + 1; }
@@ -35,7 +37,7 @@ function sourceString(source: { type: string; group: string }): string {
   return `${positionMap[source.type] ?? "?"}${source.group}`;
 }
 
-export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups, knockoutRoundPoints = {}, knockoutPointsConfig = {} }: Props) {
+export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups, knockoutRoundPoints = {}, knockoutPointsConfig = {}, readOnly = false }: Props) {
   const t = useTranslations("Bracket");
   const store = useBracketStore();
   const [saving, setSaving] = useState(false);
@@ -95,9 +97,10 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
   const handleAdvance = useCallback(
     (fromSlot: number, toSlot: number) => {
+      if (readOnly) return;
       store.advanceTeam(fromSlot, toSlot);
     },
-    [store]
+    [store, readOnly]
   );
 
   // Persist + toast + rethrow on failure (no navigation). Reused by the Save
@@ -129,7 +132,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
     commit().catch(() => {});
   }, [commit]);
 
-  useUnsavedChanges({ isDirty: store.isDirty, onSave: commit });
+  useUnsavedChanges({ isDirty: !readOnly && store.isDirty, onSave: commit });
 
   if (!store.isInitialized) {
     return <div className="text-muted-foreground">{t("loadingBracket")}</div>;
@@ -171,6 +174,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
         winner={store.picks[slotNumber] ?? null}
         onAdvance={handleAdvance}
         mirror={mirror}
+        readOnly={readOnly}
       />
     );
   };
@@ -183,33 +187,35 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-16 z-20 flex flex-wrap items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
-        <Button
-          onClick={handleSave}
-          disabled={!store.isDirty || saving}
-          className="gap-2"
-        >
-          {saving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4" />
+      {!readOnly && (
+        <div className="sticky top-16 z-20 flex flex-wrap items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
+          <Button
+            onClick={handleSave}
+            disabled={!store.isDirty || saving}
+            className="gap-2"
+          >
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            {saving ? t("saving") : store.isDirty ? t("saveBracket") : t("saved")}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => store.clearBracket()}
+            className="gap-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            {t("reset")}
+          </Button>
+          {totalKnockoutPoints > 0 && (
+            <span className="ml-auto rounded-full bg-qualified/15 px-3 py-1 font-mono text-sm font-bold text-qualified-foreground">
+              {t("ptsEarned", { points: totalKnockoutPoints })}
+            </span>
           )}
-          {saving ? t("saving") : store.isDirty ? t("saveBracket") : t("saved")}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => store.clearBracket()}
-          className="gap-2"
-        >
-          <RotateCcw className="h-4 w-4" />
-          {t("reset")}
-        </Button>
-        {totalKnockoutPoints > 0 && (
-          <span className="ml-auto rounded-full bg-qualified/15 px-3 py-1 font-mono text-sm font-bold text-qualified-foreground">
-            {t("ptsEarned", { points: totalKnockoutPoints })}
-          </span>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="overflow-x-auto pb-4">
         <div className="mx-auto flex w-max items-stretch gap-3 sm:gap-4">
@@ -383,6 +389,7 @@ function MatchupCard({
   winner,
   onAdvance,
   mirror = false,
+  readOnly = false,
 }: {
   targetSlot: number;
   team1: BracketTeam | null;
@@ -392,21 +399,24 @@ function MatchupCard({
   winner: BracketTeam | null;
   onAdvance: (fromSlot: number, toSlot: number) => void;
   mirror?: boolean;
+  readOnly?: boolean;
 }) {
   return (
-    <Card className="overflow-hidden p-0 shadow-sm transition-shadow hover:shadow-md">
+    <Card className={cn("overflow-hidden p-0 shadow-sm", !readOnly && "transition-shadow hover:shadow-md")}>
       <div className="divide-y">
         <TeamSlotButton
           team={team1}
           isWinner={!!winner && winner.teamId === team1?.teamId}
           onClick={() => team1 && onAdvance(team1Slot, targetSlot)}
           mirror={mirror}
+          readOnly={readOnly}
         />
         <TeamSlotButton
           team={team2}
           isWinner={!!winner && winner.teamId === team2?.teamId}
           onClick={() => team2 && onAdvance(team2Slot, targetSlot)}
           mirror={mirror}
+          readOnly={readOnly}
         />
       </div>
     </Card>
@@ -418,11 +428,13 @@ function TeamSlotButton({
   isWinner,
   onClick,
   mirror = false,
+  readOnly = false,
 }: {
   team: BracketTeam | null;
   isWinner: boolean;
   onClick: () => void;
   mirror?: boolean;
+  readOnly?: boolean;
 }) {
   return (
     <button
@@ -431,12 +443,15 @@ function TeamSlotButton({
         mirror ? "flex-row-reverse text-right" : "text-left",
         isWinner
           ? "bg-qualified/12 font-semibold"
-          : team
+          : team && !readOnly
             ? "hover:bg-muted/60"
-            : "opacity-60",
+            : !team
+              ? "opacity-60"
+              : "",
+        readOnly && "cursor-default",
       )}
       onClick={onClick}
-      disabled={!team}
+      disabled={!team || readOnly}
     >
       {team ? (
         <TeamFlag teamId={team.teamId} size="md" />

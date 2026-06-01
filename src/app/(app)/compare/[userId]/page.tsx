@@ -2,10 +2,27 @@ import { requireUser } from "@/lib/supabase/auth";
 import {
   getUserGroupPredictions,
   getUserBracketPicks,
+  getUserAwardPredictions,
+  getUserGoldenTrio,
+  getAllPlayers,
+  getTeamsByGroup,
   getUserScoreBreakdown,
   getPredictionVisibility,
   getTournamentConfig,
 } from "../../queries";
+import {
+  ComparePredictionsTabs,
+  type GroupBlock,
+  type AwardEntry,
+  type TrioEntry,
+} from "./compare-predictions-tabs";
+import { BracketBuilderClient } from "@/components/bracket/bracket-builder-client";
+import {
+  getThirdPlaceAssignments,
+  type GroupLetter,
+} from "@/lib/tournament/third-place-lookup";
+import { resolveR32Matchups } from "@/lib/tournament/bracket-mapping";
+import { POINTS as KNOCKOUT_POINTS } from "@/lib/scoring/knockout-scoring";
 import { db } from "@/db";
 import { profiles } from "@/db/schema/profiles";
 import { eq } from "drizzle-orm";
@@ -18,8 +35,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { TeamFlag } from "@/components/team-badge";
-import { ListChecks, Volleyball, Lock } from "lucide-react";
+import { ListChecks, Lock } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 export default async function ComparePage({
@@ -76,12 +92,28 @@ export default async function ComparePage({
     );
   }
 
-  const [predictions, bracketPicks, scoreBreakdown] = await Promise.all([
+  const [
+    predictions,
+    bracketPicks,
+    awards,
+    trio,
+    players,
+    teamsByGroup,
+    scoreBreakdown,
+  ] = await Promise.all([
     getUserGroupPredictions(compareUserId),
     getUserBracketPicks(compareUserId),
+    getUserAwardPredictions(compareUserId),
+    getUserGoldenTrio(compareUserId),
+    getAllPlayers(),
+    getTeamsByGroup(),
     getUserScoreBreakdown(compareUserId),
   ]);
 
+  const playerMap: Record<string, { name: string; teamId: string }> = {};
+  for (const p of players) playerMap[p.id] = { name: p.name, teamId: p.teamId };
+
+  // Group stage predictions, grouped by group letter and sorted by position.
   const groupPredsByGroup: Record<
     string,
     { teamId: string; position: number }[]
@@ -95,6 +127,97 @@ export default async function ComparePage({
       position: pred.predictedPosition,
     });
   }
+  const groups: GroupBlock[] = Object.entries(groupPredsByGroup)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([letter, preds]) => ({
+      letter,
+      preds: preds.sort((a, b) => a.position - b.position),
+    }));
+
+  // Knockout bracket, rebuilt from this user's group + bracket picks. Mirrors
+  // the live bracket page but rendered read-only.
+  const allTeams = Object.values(teamsByGroup).flat();
+  const teamNameMap: Record<string, string> = {};
+  for (const team of allTeams) teamNameMap[team.id] = team.name;
+
+  const thirdPlaceTeams = predictions.filter(
+    (p) => p.predictedPosition === 3 && p.advancesAsThird
+  );
+  const bracketReady = thirdPlaceTeams.length === 8;
+
+  const resolvedMatchups = bracketReady
+    ? resolveR32Matchups(
+        getThirdPlaceAssignments(
+          thirdPlaceTeams.map((p) => p.groupLetter as GroupLetter)
+        ).assignments
+      )
+    : [];
+
+  const r32Teams: { teamId: string; teamName: string; source: string }[] = [];
+  if (bracketReady) {
+    for (const pred of predictions) {
+      const prefix =
+        pred.predictedPosition === 1
+          ? "1"
+          : pred.predictedPosition === 2
+            ? "2"
+            : pred.predictedPosition === 3 && pred.advancesAsThird
+              ? "3"
+              : null;
+      if (!prefix) continue;
+      r32Teams.push({
+        teamId: pred.teamId,
+        teamName: teamNameMap[pred.teamId] ?? pred.teamId,
+        source: `${prefix}${pred.groupLetter}`,
+      });
+    }
+  }
+
+  const existingPicks: Record<number, { teamId: string; teamName: string }> = {};
+  for (const pick of bracketPicks) {
+    existingPicks[pick.bracketSlot] = {
+      teamId: pick.teamId,
+      teamName: teamNameMap[pick.teamId] ?? pick.teamId,
+    };
+  }
+
+  const awardEntries: AwardEntry[] = awards.map((a) => {
+    const player = a.playerId ? playerMap[a.playerId] : undefined;
+    return {
+      awardType: a.awardType,
+      playerName: player?.name ?? null,
+      teamId: player?.teamId ?? null,
+      description: a.description,
+    };
+  });
+
+  const trioEntries: TrioEntry[] = trio
+    .sort((a, b) => a.slot - b.slot)
+    .map((tr) => {
+      const player = playerMap[tr.playerId];
+      return {
+        slot: tr.slot,
+        playerName: player?.name ?? null,
+        teamId: player?.teamId ?? null,
+      };
+    });
+
+  const knockoutNode =
+    bracketReady && bracketPicks.length > 0 ? (
+      <BracketBuilderClient
+        r32Teams={r32Teams}
+        existingPicks={existingPicks}
+        resolvedMatchups={resolvedMatchups}
+        knockoutPointsConfig={KNOCKOUT_POINTS}
+        readOnly
+      />
+    ) : (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          {t("noPredictions")}
+        </CardContent>
+      </Card>
+    );
 
   return (
     <div className="space-y-6">
@@ -144,39 +267,12 @@ export default async function ComparePage({
         </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Volleyball className="h-5 w-5 text-chart-3" />
-            {t("groupPredictions")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {Object.entries(groupPredsByGroup)
-              .sort()
-              .map(([group, preds]) => (
-                <div key={group} className="rounded-lg border p-3">
-                  <h4 className="mb-2 font-semibold">{t("group", { letter: group })}</h4>
-                  {preds
-                    .sort((a, b) => a.position - b.position)
-                    .map((pred) => (
-                      <div
-                        key={pred.teamId}
-                        className="flex items-center gap-2 py-1"
-                      >
-                        <Badge variant="outline" className="w-6 justify-center">
-                          {pred.position}
-                        </Badge>
-                        <TeamFlag teamId={pred.teamId} size="sm" />
-                        <span className="text-sm font-medium">{pred.teamId}</span>
-                      </div>
-                    ))}
-                </div>
-              ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ComparePredictionsTabs
+        groups={groups}
+        knockout={knockoutNode}
+        awards={awardEntries}
+        trio={trioEntries}
+      />
     </div>
   );
 }
