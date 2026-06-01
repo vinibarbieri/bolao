@@ -1,4 +1,16 @@
 {
+  "Invite": {
+    "metaTitle": "Join \"{name}\" on Bolão 2026",
+    "metaDesc": "You've been invited to join my league \"{name}\". Make your World Cup 2026 predictions!",
+    "metaUnknownTitle": "League invite — Bolão 2026",
+    "metaUnknownDesc": "You've been invited to a Bolão 2026 league. Make your World Cup 2026 predictions!",
+    "heading": "You're invited!",
+    "subheading": "Join my league \"{name}\" on Bolão 2026 and make your World Cup 2026 predictions.",
+    "signInToJoin": "Sign in to join",
+    "invalidTitle": "Invite not found",
+    "invalidDesc": "This invite link is invalid or has expired.",
+    "backToApp": "Go to Bolão 2026"
+  },
   "Sidebar": {
     "worldCup": "World Cup 2026",
     "dashboard": "Dashboard",

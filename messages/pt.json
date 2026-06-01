@@ -1,4 +1,16 @@
 {
+  "Invite": {
+    "metaTitle": "Entre na liga \"{name}\" no Bolão 2026",
+    "metaDesc": "Você foi convidado para entrar na minha liga \"{name}\". Faça seus palpites para a Copa do Mundo 2026!",
+    "metaUnknownTitle": "Convite de liga — Bolão 2026",
+    "metaUnknownDesc": "Você foi convidado para uma liga do Bolão 2026. Faça seus palpites para a Copa do Mundo 2026!",
+    "heading": "Você foi convidado!",
+    "subheading": "Entre na minha liga \"{name}\" no Bolão 2026 e faça seus palpites para a Copa do Mundo 2026.",
+    "signInToJoin": "Entrar para participar",
+    "invalidTitle": "Convite não encontrado",
+    "invalidDesc": "Este link de convite é inválido ou expirou.",
+    "backToApp": "Ir para o Bolão 2026"
+  },
   "Sidebar": {
     "worldCup": "Copa do Mundo 2026",
     "dashboard": "Dashboard",
