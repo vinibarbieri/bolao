@@ -191,7 +191,7 @@ export default async function DashboardPage() {
         />
       )}
 
-      {!isLocked && (
+      {!isLocked && completedSteps < steps.length && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
