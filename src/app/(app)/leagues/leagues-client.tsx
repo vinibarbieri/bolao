@@ -78,8 +78,8 @@ export function LeaguesClient({ leagues }: { leagues: League[] }) {
             <CardTitle>{t("createLeague")}</CardTitle>
             <CardDescription>{t("createDescription")}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
+          <CardContent className="space-y-4">
+            <div className="space-y-1.5">
               <Label htmlFor="league-name">{t("leagueName")}</Label>
               <Input
                 id="league-name"
@@ -100,8 +100,8 @@ export function LeaguesClient({ leagues }: { leagues: League[] }) {
             <CardTitle>{t("joinLeague")}</CardTitle>
             <CardDescription>{t("joinDescription")}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
+          <CardContent className="space-y-4">
+            <div className="space-y-1.5">
               <Label htmlFor="invite-code">{t("inviteCode")}</Label>
               <Input
                 id="invite-code"
