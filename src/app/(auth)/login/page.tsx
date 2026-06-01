@@ -36,8 +36,8 @@ function LoginForm() {
   const next = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
     ? rawNext
     : "/dashboard";
-  const [email, setEmail] = useState("dev@bolao.local");
-  const [password, setPassword] = useState("devpassword");
+  const [email, setEmail] = useState("a@a.com");
+  const [password, setPassword] = useState("123456");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
