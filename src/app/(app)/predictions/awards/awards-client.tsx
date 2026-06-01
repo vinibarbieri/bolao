@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 const AWARD_TYPE_KEYS: {
   type: "golden_boot" | "golden_glove" | "top_assist" | "goal_of_tournament";
@@ -91,7 +92,18 @@ export function AwardsPredictionClient({
 
   const [saving, setSaving] = useState(false);
 
-  const handleSave = async () => {
+  const initialKey = useMemo(
+    () =>
+      AWARD_TYPE_KEYS.map((a) => predMap[a.type]?.playerId ?? "").join(","),
+    [predMap],
+  );
+  const isDirty =
+    AWARD_TYPE_KEYS.map((a) => selections[a.type]?.playerId ?? "").join(",") !==
+    initialKey;
+
+  // Persist + toast + rethrow on failure (no navigation). Reused by the Save
+  // button and the unsaved-changes guard. Awards have no count requirement.
+  const commit = useCallback(async () => {
     setSaving(true);
     try {
       const data = AWARD_TYPE_KEYS.map((award) => ({
@@ -105,10 +117,17 @@ export function AwardsPredictionClient({
       toast.error(
         error instanceof Error ? error.message : t("failedSave")
       );
+      throw error;
     } finally {
       setSaving(false);
     }
+  }, [selections, t]);
+
+  const handleSave = () => {
+    commit().catch(() => {});
   };
+
+  useUnsavedChanges({ isDirty, onSave: commit });
 
   return (
     <div className="space-y-4">

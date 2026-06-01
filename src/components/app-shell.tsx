@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Menu, Trophy } from "lucide-react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { GuardedLink } from "@/components/guarded-link";
+import { NavigationBlockerProvider } from "@/contexts/navigation-blocker";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LocaleToggle } from "@/components/locale-toggle";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export function AppShell({ user, isAdmin = false, children }: AppShellProps) {
   };
 
   return (
+    <NavigationBlockerProvider>
     <div className="flex min-h-screen">
       {mobileOpen && (
         <div
@@ -66,7 +68,7 @@ export function AppShell({ user, isAdmin = false, children }: AppShellProps) {
             <Menu className="h-5 w-5" />
           </Button>
 
-          <Link
+          <GuardedLink
             href="/dashboard"
             className={cn(
               "flex items-center gap-2",
@@ -79,7 +81,7 @@ export function AppShell({ user, isAdmin = false, children }: AppShellProps) {
             <span className="font-heading text-lg font-bold uppercase tracking-wide">
               Bolão 2026
             </span>
-          </Link>
+          </GuardedLink>
 
           <div className="ml-auto flex items-center gap-1">
             <LocaleToggle />
@@ -92,5 +94,6 @@ export function AppShell({ user, isAdmin = false, children }: AppShellProps) {
         </main>
       </div>
     </div>
+    </NavigationBlockerProvider>
   );
 }

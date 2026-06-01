@@ -14,6 +14,7 @@ import { saveGroupPredictions, saveScorePredictions } from "@/app/(app)/actions"
 import { Save, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 interface Props {
   initialPlacements: Record<
@@ -83,7 +84,9 @@ export function GroupSimulatorClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSave = useCallback(async () => {
+  // Persist + toast + rethrow on failure (no navigation). Reused by the Save
+  // button and the unsaved-changes guard.
+  const commit = useCallback(async () => {
     setSaving(true);
     try {
       const data = GROUP_LETTERS.map((letter) => ({
@@ -116,10 +119,17 @@ export function GroupSimulatorClient({
       toast.error(
         error instanceof Error ? error.message : "Failed to save predictions"
       );
+      throw error;
     } finally {
       setSaving(false);
     }
   }, [store, t]);
+
+  const handleSave = useCallback(() => {
+    commit().catch(() => {});
+  }, [commit]);
+
+  useUnsavedChanges({ isDirty: store.isDirty, onSave: commit });
 
   return (
     <div className="space-y-6">

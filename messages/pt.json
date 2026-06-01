@@ -301,5 +301,14 @@
     "selectExact3": "Selecione exatamente 3 jogadores",
     "saved": "Trio de Ouro salvo!",
     "failedSave": "Falha ao salvar"
+  },
+  "UnsavedChanges": {
+    "title": "Alterações não salvas",
+    "description": "Você tem alterações não salvas. Deseja salvá-las antes de sair?",
+    "descriptionNoSave": "Você tem alterações não salvas que serão perdidas se sair. Suas alterações estão incompletas e ainda não podem ser salvas.",
+    "saveAndLeave": "Salvar e sair",
+    "leaveWithoutSaving": "Sair sem salvar",
+    "stay": "Ficar",
+    "saving": "Salvando..."
   }
 }

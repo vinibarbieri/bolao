@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Star, X, Plus, Save, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 interface Player {
   id: string;
@@ -46,6 +47,16 @@ export function GoldenTrioClient({
     [players]
   );
 
+  const initialKey = useMemo(() => {
+    const slots = [null, null, null] as (string | null)[];
+    for (const t of existingTrio) {
+      if (t.slot >= 1 && t.slot <= 3) {
+        slots[t.slot - 1] = t.playerId;
+      }
+    }
+    return slots.join(",");
+  }, [existingTrio]);
+
   const [picks, setPicks] = useState<(string | null)[]>(() => {
     const slots = [null, null, null] as (string | null)[];
     for (const t of existingTrio) {
@@ -59,6 +70,9 @@ export function GoldenTrioClient({
   const [searchSlot, setSearchSlot] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const isDirty = picks.join(",") !== initialKey;
+  const filledCount = picks.filter(Boolean).length;
 
   const selectedIds = new Set(picks.filter(Boolean) as string[]);
 
@@ -80,15 +94,12 @@ export function GoldenTrioClient({
     });
   };
 
-  const handleSave = async () => {
+  // Persist + toast + rethrow on failure (no navigation). Assumes exactly 3
+  // picks; reused by the Save button and the unsaved-changes guard.
+  const commit = useCallback(async () => {
     const validPicks = picks
       .map((id, i) => (id ? { playerId: id, slot: i + 1 } : null))
       .filter(Boolean) as TrioPick[];
-
-    if (validPicks.length !== 3) {
-      toast.error(t("selectExact3"));
-      return;
-    }
 
     setSaving(true);
     try {
@@ -98,10 +109,25 @@ export function GoldenTrioClient({
       toast.error(
         error instanceof Error ? error.message : t("failedSave")
       );
+      throw error;
     } finally {
       setSaving(false);
     }
+  }, [picks, t]);
+
+  const handleSave = () => {
+    if (filledCount !== 3) {
+      toast.error(t("selectExact3"));
+      return;
+    }
+    commit().catch(() => {});
   };
+
+  // Only offer "Save & leave" when exactly 3 players are selected.
+  useUnsavedChanges({
+    isDirty,
+    onSave: filledCount === 3 ? commit : undefined,
+  });
 
   const filteredPlayers = players
     .filter(

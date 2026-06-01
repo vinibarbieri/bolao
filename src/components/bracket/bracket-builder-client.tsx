@@ -13,6 +13,7 @@ import { Trophy, Crown, Save, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTranslations } from "next-intl";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 interface Props {
   r32Teams: { teamId: string; teamName: string; source: string }[];
@@ -99,7 +100,9 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
     [store]
   );
 
-  const handleSave = async () => {
+  // Persist + toast + rethrow on failure (no navigation). Reused by the Save
+  // button and the unsaved-changes guard.
+  const commit = useCallback(async () => {
     setSaving(true);
     try {
       const picks = Object.entries(store.picks)
@@ -116,10 +119,17 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
       toast.error(
         error instanceof Error ? error.message : t("failedSave")
       );
+      throw error;
     } finally {
       setSaving(false);
     }
-  };
+  }, [store, t]);
+
+  const handleSave = useCallback(() => {
+    commit().catch(() => {});
+  }, [commit]);
+
+  useUnsavedChanges({ isDirty: store.isDirty, onSave: commit });
 
   if (!store.isInitialized) {
     return <div className="text-muted-foreground">{t("loadingBracket")}</div>;

@@ -301,5 +301,14 @@
     "selectExact3": "Select exactly 3 players",
     "saved": "Golden Trio saved!",
     "failedSave": "Failed to save"
+  },
+  "UnsavedChanges": {
+    "title": "Unsaved changes",
+    "description": "You have unsaved changes. Do you want to save them before leaving?",
+    "descriptionNoSave": "You have unsaved changes that will be lost if you leave. Your changes are incomplete and can't be saved yet.",
+    "saveAndLeave": "Save & leave",
+    "leaveWithoutSaving": "Leave without saving",
+    "stay": "Stay",
+    "saving": "Saving..."
   }
 }

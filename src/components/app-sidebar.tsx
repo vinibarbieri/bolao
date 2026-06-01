@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { GuardedLink as Link } from "@/components/guarded-link";
+import { useNavigationBlocker } from "@/contexts/navigation-blocker";
 import {
   LayoutDashboard,
   Volleyball,
@@ -46,6 +47,7 @@ export function AppSidebar({
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const router = useRouter();
+  const { attemptNavigation } = useNavigationBlocker();
 
   const navItems: { href: string; label: string; icon: LucideIcon }[] = [
     { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
@@ -60,10 +62,12 @@ export function AppSidebar({
       : []),
   ];
 
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
+  const handleSignOut = () => {
+    attemptNavigation(async () => {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/login");
+    });
   };
 
   return (

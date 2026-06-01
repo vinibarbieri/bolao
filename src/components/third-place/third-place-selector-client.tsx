@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Check, Medal, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 interface ThirdPlaceTeam {
   teamId: string;
@@ -29,10 +30,22 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
   const t = useTranslations("ThirdPlace");
   const earnedSet = new Set(earnedThirdSet);
   const router = useRouter();
+  const initialKey = useMemo(
+    () =>
+      teams
+        .filter((t) => t.isSelected)
+        .map((t) => t.teamId)
+        .sort()
+        .join(","),
+    [teams],
+  );
   const [selected, setSelected] = useState<Set<string>>(
     new Set(teams.filter((t) => t.isSelected).map((t) => t.teamId))
   );
   const [saving, setSaving] = useState(false);
+
+  const isDirty =
+    Array.from(selected).sort().join(",") !== initialKey;
 
   const toggleTeam = useCallback((teamId: string) => {
     setSelected((prev) => {
@@ -46,23 +59,37 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
     });
   }, []);
 
-  const handleSave = async () => {
-    if (selected.size !== 8) return;
+  // Persist + toast + rethrow on failure (no navigation). Reused by the Save
+  // button and the unsaved-changes guard.
+  const commit = useCallback(async () => {
     setSaving(true);
     try {
       await saveThirdPlaceSelections(Array.from(selected));
       toast.success(t("saved"));
-      router.push("/bracket");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : t("failedSave")
       );
+      throw error;
     } finally {
       setSaving(false);
+    }
+  }, [selected, t]);
+
+  const handleSave = async () => {
+    if (selected.size !== 8) return;
+    try {
+      await commit();
+      router.push("/bracket");
+    } catch {
+      // commit already toasted; stay on the page.
     }
   };
 
   const complete = selected.size === 8;
+
+  // Only offer "Save & leave" when the selection is valid (exactly 8).
+  useUnsavedChanges({ isDirty, onSave: complete ? commit : undefined });
 
   return (
     <div className="space-y-6">
