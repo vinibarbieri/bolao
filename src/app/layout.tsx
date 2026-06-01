@@ -27,6 +27,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Bolao 2026 - World Cup Predictions",
   description: "World Cup 2026 prediction game for friends",
+  verification: {
+    google: "SpTvz1Atjv0Uethq-A4x_zP5bFz9QbTPVJYExQUglaA",
+  },
 };
 
 export default async function RootLayout({
