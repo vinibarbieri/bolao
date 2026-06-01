@@ -5,6 +5,7 @@ import { isoForFifa } from "./flags";
 const OVERRIDES: Record<string, Record<string, string>> = {
   ENG: { en: "England", pt: "Inglaterra" },
   SCO: { en: "Scotland", pt: "Escócia" },
+  CIV: { en: "Ivory Coast", pt: "Costa do Marfim" },
 };
 
 /**
