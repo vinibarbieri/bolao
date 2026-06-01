@@ -57,7 +57,10 @@
     "noScores": "No scores yet.",
     "rank": "#",
     "player": "Player",
-    "points": "Points"
+    "points": "Points",
+    "awards": "Awards",
+    "goldenTrio": "Golden Trio",
+    "pick": "Pick"
   },
   "Groups": {
     "title": "Group Stage",
@@ -129,7 +132,11 @@
     "finalTooltip": "points for each correct team advancing to the Final",
     "thirdTooltip": "points for correctly predicting the 3rd place match winner",
     "championTooltip": "points for correctly predicting the tournament champion",
-    "failedSave": "Failed to save bracket"
+    "failedSave": "Failed to save bracket",
+    "awardsPromptTitle": "Bracket saved!",
+    "awardsPromptDescription": "Now predict the individual awards: golden boot, golden glove and more.",
+    "awardsPromptConfirm": "Pick awards",
+    "awardsPromptLater": "Later"
   },
   "Leagues": {
     "title": "Leagues",
@@ -301,7 +308,11 @@
     "saving": "Saving...",
     "saveAwards": "Save Award Predictions",
     "saved": "Award predictions saved!",
-    "failedSave": "Failed to save"
+    "failedSave": "Failed to save",
+    "trioPromptTitle": "Awards saved!",
+    "trioPromptDescription": "One last step: pick your Golden Trio of three players to complete your predictions.",
+    "trioPromptConfirm": "Pick Golden Trio",
+    "trioPromptLater": "Later"
   },
   "GoldenTrio": {
     "title": "Golden Trio",

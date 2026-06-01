@@ -21,6 +21,8 @@ import {
   Check,
   ArrowRight,
   ListChecks,
+  Award,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -106,7 +108,7 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           icon={Volleyball}
           label={t("groupsCompleted")}
@@ -138,6 +140,38 @@ export default async function DashboardPage() {
           href="/bracket"
           cta={hasBracket ? t("review") : t("build")}
           tint="text-chart-1"
+        />
+        <StatCard
+          icon={Award}
+          label={t("awards")}
+          value={
+            hasAwards ? (
+              <Badge className="bg-qualified/15 text-qualified-foreground">
+                {t("complete")}
+              </Badge>
+            ) : (
+              <Badge variant="secondary">{t("pending")}</Badge>
+            )
+          }
+          href="/predictions/awards"
+          cta={hasAwards ? t("review") : t("pick")}
+          tint="text-gold"
+        />
+        <StatCard
+          icon={Sparkles}
+          label={t("goldenTrio")}
+          value={
+            hasTrio ? (
+              <Badge className="bg-qualified/15 text-qualified-foreground">
+                {t("complete")}
+              </Badge>
+            ) : (
+              <Badge variant="secondary">{t("pending")}</Badge>
+            )
+          }
+          href="/predictions/trio"
+          cta={hasTrio ? t("review") : t("pick")}
+          tint="text-chart-4"
         />
         <StatCard
           icon={Users}

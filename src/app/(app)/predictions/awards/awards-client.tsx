@@ -22,11 +22,13 @@ import {
   Check,
   Save,
   Loader2,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { NextStepDialog } from "@/components/next-step-dialog";
 
 const AWARD_TYPE_KEYS: {
   type: "golden_boot" | "golden_glove" | "top_assist" | "goal_of_tournament";
@@ -91,6 +93,7 @@ export function AwardsPredictionClient({
   });
 
   const [saving, setSaving] = useState(false);
+  const [showTrioPrompt, setShowTrioPrompt] = useState(false);
 
   const initialKey = useMemo(
     () =>
@@ -124,7 +127,9 @@ export function AwardsPredictionClient({
   }, [selections, t]);
 
   const handleSave = () => {
-    commit().catch(() => {});
+    commit()
+      .then(() => setShowTrioPrompt(true))
+      .catch(() => {});
   };
 
   useUnsavedChanges({ isDirty, onSave: commit });
@@ -255,6 +260,17 @@ export function AwardsPredictionClient({
           {saving ? t("saving") : t("saveAwards")}
         </Button>
       </div>
+
+      <NextStepDialog
+        open={showTrioPrompt}
+        onOpenChange={setShowTrioPrompt}
+        icon={Users}
+        title={t("trioPromptTitle")}
+        description={t("trioPromptDescription")}
+        confirmLabel={t("trioPromptConfirm")}
+        laterLabel={t("trioPromptLater")}
+        href="/predictions/trio"
+      />
     </div>
   );
 }

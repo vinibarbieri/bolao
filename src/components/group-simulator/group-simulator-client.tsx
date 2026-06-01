@@ -10,18 +10,10 @@ import { PlacementsTable } from "./placements-table";
 import { ScoresTable, ComputedStandingsCard } from "./scores-table";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { NextStepDialog } from "@/components/next-step-dialog";
 import { saveGroupPredictions, saveScorePredictions } from "@/app/(app)/actions";
-import { Save, ChevronLeft, ChevronRight, Loader2, Medal, ArrowRight } from "lucide-react";
+import { Save, ChevronLeft, ChevronRight, Loader2, Medal } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
@@ -51,7 +43,6 @@ export function GroupSimulatorClient({
   teamPointsMap,
 }: Props) {
   const t = useTranslations("Groups");
-  const router = useRouter();
   const store = useGroupSimulatorStore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -315,26 +306,16 @@ export function GroupSimulatorClient({
       </>
       )}
 
-      <Dialog open={showThirdPrompt} onOpenChange={setShowThirdPrompt}>
-        <DialogContent>
-          <DialogHeader>
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-third/15">
-              <Medal className="h-5 w-5 text-third-foreground" />
-            </div>
-            <DialogTitle>{t("thirdPromptTitle")}</DialogTitle>
-            <DialogDescription>{t("thirdPromptDescription")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowThirdPrompt(false)}>
-              {t("thirdPromptLater")}
-            </Button>
-            <Button className="gap-2" onClick={() => router.push("/third-place")}>
-              {t("thirdPromptConfirm")}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <NextStepDialog
+        open={showThirdPrompt}
+        onOpenChange={setShowThirdPrompt}
+        icon={Medal}
+        title={t("thirdPromptTitle")}
+        description={t("thirdPromptDescription")}
+        confirmLabel={t("thirdPromptConfirm")}
+        laterLabel={t("thirdPromptLater")}
+        href="/third-place"
+      />
     </div>
   );
 }

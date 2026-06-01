@@ -15,11 +15,12 @@ import { saveBracketPredictions } from "@/app/(app)/actions";
 import { TeamFlag } from "@/components/team-badge";
 import { TeamName } from "@/components/team-name";
 import { cn } from "@/lib/utils";
-import { Trophy, Crown, Save, RotateCcw, Loader2 } from "lucide-react";
+import { Trophy, Crown, Save, RotateCcw, Loader2, Award } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTranslations } from "next-intl";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { NextStepDialog } from "@/components/next-step-dialog";
 
 interface Props {
   r32Teams: { teamId: string; teamName: string; source: string }[];
@@ -44,6 +45,7 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
   const t = useTranslations("Bracket");
   const store = useBracketStore();
   const [saving, setSaving] = useState(false);
+  const [showAwardsPrompt, setShowAwardsPrompt] = useState(false);
   const hasInitialized = useRef(false);
 
   const ROUND_LABELS: Record<string, string> = {
@@ -151,7 +153,9 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
   }, [store, t]);
 
   const handleSave = useCallback(() => {
-    commit().catch(() => {});
+    commit()
+      .then(() => setShowAwardsPrompt(true))
+      .catch(() => {});
   }, [commit]);
 
   useUnsavedChanges({ isDirty: !readOnly && store.isDirty, onSave: commit });
@@ -290,6 +294,17 @@ export function BracketBuilderClient({ r32Teams, existingPicks, resolvedMatchups
           </BracketColumn>
         </div>
       </div>
+
+      <NextStepDialog
+        open={showAwardsPrompt}
+        onOpenChange={setShowAwardsPrompt}
+        icon={Award}
+        title={t("awardsPromptTitle")}
+        description={t("awardsPromptDescription")}
+        confirmLabel={t("awardsPromptConfirm")}
+        laterLabel={t("awardsPromptLater")}
+        href="/predictions/awards"
+      />
     </div>
   );
 }

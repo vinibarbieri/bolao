@@ -57,7 +57,10 @@
     "noScores": "Ainda sem pontuação.",
     "rank": "#",
     "player": "Jogador",
-    "points": "Pontos"
+    "points": "Pontos",
+    "awards": "Prêmios",
+    "goldenTrio": "Trio de Ouro",
+    "pick": "Escolher"
   },
   "Groups": {
     "title": "Fase de Grupos",
@@ -129,7 +132,11 @@
     "finalTooltip": "pontos por cada time que avança corretamente para a Final",
     "thirdTooltip": "pontos por prever corretamente o vencedor do 3º lugar",
     "championTooltip": "pontos por prever corretamente o campeão do torneio",
-    "failedSave": "Falha ao salvar chaveamento"
+    "failedSave": "Falha ao salvar chaveamento",
+    "awardsPromptTitle": "Chaveamento salvo!",
+    "awardsPromptDescription": "Agora preveja os prêmios individuais: chuteira de ouro, luva de ouro e mais.",
+    "awardsPromptConfirm": "Escolher prêmios",
+    "awardsPromptLater": "Depois"
   },
   "Leagues": {
     "title": "Ligas",
@@ -301,7 +308,11 @@
     "saving": "Salvando...",
     "saveAwards": "Salvar Previsões de Prêmios",
     "saved": "Previsões de prêmios salvas!",
-    "failedSave": "Falha ao salvar"
+    "failedSave": "Falha ao salvar",
+    "trioPromptTitle": "Prêmios salvos!",
+    "trioPromptDescription": "Último passo: escolha seu Trio de Ouro de três jogadores para completar suas previsões.",
+    "trioPromptConfirm": "Escolher Trio de Ouro",
+    "trioPromptLater": "Depois"
   },
   "GoldenTrio": {
     "title": "Trio de Ouro",
