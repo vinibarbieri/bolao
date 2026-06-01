@@ -3,13 +3,13 @@ import { db } from "@/db";
 import { tournamentConfig } from "@/db/schema/matches";
 import { predictionVisibility } from "@/db/schema/predictions";
 import { eq } from "drizzle-orm";
-import { getUser } from "@/lib/supabase/auth";
+import { getUser, isAdmin } from "@/lib/supabase/auth";
 
 export async function POST() {
   const user = await getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdmin(user)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   await db.transaction(async (tx) => {

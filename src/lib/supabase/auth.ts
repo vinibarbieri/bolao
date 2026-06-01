@@ -16,7 +16,7 @@ function devUser(): User {
   return {
     id: DEV_USER_ID,
     email: DEV_USER_EMAIL,
-    app_metadata: { provider: "dev" },
+    app_metadata: { provider: "dev", role: "admin" },
     user_metadata: { full_name: DEV_USER_NAME },
     aud: "authenticated",
     role: "authenticated",
@@ -70,5 +70,16 @@ export async function getUser() {
 export async function requireUser() {
   const user = await getUser();
   if (!user) redirect("/login");
+  return user;
+}
+
+export function isAdmin(user: User | null) {
+  return user?.app_metadata?.role === "admin";
+}
+
+export async function requireAdmin() {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!isAdmin(user)) redirect("/dashboard");
   return user;
 }

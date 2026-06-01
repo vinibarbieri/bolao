@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { matches } from "@/db/schema/matches";
 import { eq } from "drizzle-orm";
-import { getUser } from "@/lib/supabase/auth";
+import { getUser, isAdmin } from "@/lib/supabase/auth";
 import { recalculateAllScores } from "@/lib/scoring/recalculate";
 import {
   updateGroupStandings,
@@ -13,8 +13,8 @@ import { resolveWinner } from "@/lib/tournament/winner";
 export async function POST(request: Request) {
   const user = await getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdmin(user)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { matchId, homeScore, awayScore, motmPlayerId, winnerTeamId: winnerOverride } =

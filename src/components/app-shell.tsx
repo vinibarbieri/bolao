@@ -16,10 +16,11 @@ interface AppShellProps {
     name: string;
     avatar?: string;
   };
+  isAdmin?: boolean;
   children: React.ReactNode;
 }
 
-export function AppShell({ user, children }: AppShellProps) {
+export function AppShell({ user, isAdmin = false, children }: AppShellProps) {
   const t = useTranslations("Sidebar");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -47,6 +48,7 @@ export function AppShell({ user, children }: AppShellProps) {
 
       <AppSidebar
         user={user}
+        isAdmin={isAdmin}
         mobileOpen={mobileOpen}
         collapsed={collapsed}
         onNavigate={() => setMobileOpen(false)}

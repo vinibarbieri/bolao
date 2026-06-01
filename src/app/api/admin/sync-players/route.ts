@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { getUser } from "@/lib/supabase/auth";
+import { getUser, isAdmin } from "@/lib/supabase/auth";
 import { syncWorldCupPlayers } from "@/lib/players/sync";
 
 export async function POST() {
   const user = await getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdmin(user)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {

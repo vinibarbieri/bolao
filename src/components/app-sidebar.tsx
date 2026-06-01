@@ -28,6 +28,7 @@ interface AppSidebarProps {
     name: string;
     avatar?: string;
   };
+  isAdmin?: boolean;
   mobileOpen?: boolean;
   collapsed?: boolean;
   onNavigate?: () => void;
@@ -36,6 +37,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({
   user,
+  isAdmin = false,
   mobileOpen = false,
   collapsed = false,
   onNavigate,
@@ -53,7 +55,9 @@ export function AppSidebar({
     { href: "/predictions/awards", label: t("awards"), icon: Award },
     { href: "/predictions/trio", label: t("goldenTrio"), icon: Star },
     { href: "/leagues", label: t("leagues"), icon: Users },
-    { href: "/admin", label: t("admin"), icon: Settings },
+    ...(isAdmin
+      ? [{ href: "/admin", label: t("admin"), icon: Settings }]
+      : []),
   ];
 
   const handleSignOut = async () => {
