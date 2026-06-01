@@ -30,6 +30,13 @@ export const metadata: Metadata = {
   verification: {
     google: "SpTvz1Atjv0Uethq-A4x_zP5bFz9QbTPVJYExQUglaA",
   },
+  openGraph: {
+    images: [{ url: "/og.png" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og.png"],
+  },
 };
 
 export default async function RootLayout({
