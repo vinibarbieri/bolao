@@ -67,7 +67,16 @@ export function NextStepDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {laterLabel}
           </Button>
-          <Button className="gap-2" onClick={() => router.push(href)}>
+          <Button
+            className="gap-2"
+            onClick={() => {
+              // Drop any stale prefetched RSC of the target route so it
+              // re-renders against the just-saved data instead of a cached
+              // pre-save payload.
+              router.refresh();
+              router.push(href);
+            }}
+          >
             {confirmLabel}
             <ArrowRight className="h-4 w-4" />
           </Button>

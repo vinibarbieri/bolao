@@ -43,9 +43,13 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
     new Set(teams.filter((t) => t.isSelected).map((t) => t.teamId))
   );
   const [saving, setSaving] = useState(false);
+  // Baseline the dirty check compares against. Starts at the server state and
+  // advances to the saved selection on each successful save, so the page is
+  // clean (no unsaved-changes guard) right after saving.
+  const [savedKey, setSavedKey] = useState(initialKey);
 
   const isDirty =
-    Array.from(selected).sort().join(",") !== initialKey;
+    Array.from(selected).sort().join(",") !== savedKey;
 
   const toggleTeam = useCallback((teamId: string) => {
     setSelected((prev) => {
@@ -65,6 +69,8 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
     setSaving(true);
     try {
       await saveThirdPlaceSelections(Array.from(selected));
+      // Clear dirty state so the unsaved-changes guard disarms post-save.
+      setSavedKey(Array.from(selected).sort().join(","));
       toast.success(t("saved"));
     } catch (error) {
       toast.error(
@@ -80,6 +86,9 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
     if (selected.size !== 8) return;
     try {
       await commit();
+      // Drop the stale prefetched /bracket RSC so it renders against the
+      // just-saved third-place selection instead of the pre-save payload.
+      router.refresh();
       router.push("/bracket");
     } catch {
       // commit already toasted; stay on the page.
