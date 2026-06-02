@@ -28,6 +28,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { fetchLeagueLeaderboard } from "../actions";
+import { ClickableRow } from "../clickable-row";
 
 type LeaderboardEntry = Awaited<ReturnType<typeof fetchLeagueLeaderboard>>[number];
 type LeagueOption = { id: string; name: string };
@@ -99,7 +100,10 @@ export function LeagueLeaderboard({
             </TableHeader>
             <TableBody>
               {leaderboard.map((entry) => (
-                <TableRow key={entry.userId}>
+                <ClickableRow
+                  key={entry.userId}
+                  href={`/compare/${entry.userId}`}
+                >
                   <TableCell>
                     <span
                       className={cn(
@@ -133,7 +137,7 @@ export function LeagueLeaderboard({
                   <TableCell className="text-center text-lg font-bold">
                     {entry.totalPoints}
                   </TableCell>
-                </TableRow>
+                </ClickableRow>
               ))}
             </TableBody>
           </Table>

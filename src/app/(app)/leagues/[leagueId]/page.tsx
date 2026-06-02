@@ -27,6 +27,7 @@ import { getTranslations } from "next-intl/server";
 import { CopyInviteLink } from "../copy-invite-link";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { ClickableRow } from "../../clickable-row";
 
 export default async function LeagueDetailPage({
   params,
@@ -76,7 +77,9 @@ export default async function LeagueDetailPage({
             <Trophy className="h-5 w-5 text-gold" />
             {t("leaderboard")}
           </CardTitle>
-          <CardDescription>{t("members", { count: members.length })}</CardDescription>
+          <CardDescription>
+            {t("members", { count: members.length })} · {t("viewPredictionsHint")}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {leaderboard.length === 0 ? (
@@ -100,7 +103,10 @@ export default async function LeagueDetailPage({
               </TableHeader>
               <TableBody>
                 {leaderboard.map((entry) => (
-                  <TableRow key={entry.userId}>
+                  <ClickableRow
+                    key={entry.userId}
+                    href={`/compare/${entry.userId}`}
+                  >
                     <TableCell>
                       <span
                         className={cn(
@@ -140,7 +146,7 @@ export default async function LeagueDetailPage({
                     <TableCell className="text-center text-lg font-bold">
                       {entry.totalPoints}
                     </TableCell>
-                  </TableRow>
+                  </ClickableRow>
                 ))}
               </TableBody>
             </Table>
