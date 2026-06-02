@@ -13,7 +13,7 @@ import {
   predictionVisibility,
 } from "@/db/schema/predictions";
 import { userScores, leaderboardCache } from "@/db/schema/scores";
-import { eq, and, asc, desc } from "drizzle-orm";
+import { eq, and, asc, desc, sql } from "drizzle-orm";
 
 export async function getTeamsByGroup() {
   const allTeams = await db.select().from(teams).orderBy(asc(teams.groupLetter), asc(teams.name));
@@ -78,21 +78,37 @@ export async function getUserGoldenTrio(userId: string) {
 export async function getLeaderboard(leagueId: string) {
   return db
     .select({
-      userId: leaderboardCache.userId,
+      userId: leagueMembers.userId,
       displayName: profiles.displayName,
       avatarUrl: profiles.avatarUrl,
-      totalPoints: leaderboardCache.totalPoints,
-      groupPoints: leaderboardCache.groupPoints,
-      knockoutPoints: leaderboardCache.knockoutPoints,
-      awardPoints: leaderboardCache.awardPoints,
-      trioPoints: leaderboardCache.trioPoints,
-      championCorrect: leaderboardCache.championCorrect,
+      totalPoints: sql<number>`coalesce(${leaderboardCache.totalPoints}, 0)`,
+      groupPoints: sql<number>`coalesce(${leaderboardCache.groupPoints}, 0)`,
+      knockoutPoints: sql<number>`coalesce(${leaderboardCache.knockoutPoints}, 0)`,
+      awardPoints: sql<number>`coalesce(${leaderboardCache.awardPoints}, 0)`,
+      trioPoints: sql<number>`coalesce(${leaderboardCache.trioPoints}, 0)`,
+      championCorrect: sql<boolean>`coalesce(${leaderboardCache.championCorrect}, false)`,
       rank: leaderboardCache.rank,
     })
-    .from(leaderboardCache)
-    .innerJoin(profiles, eq(leaderboardCache.userId, profiles.id))
-    .where(eq(leaderboardCache.leagueId, leagueId))
-    .orderBy(asc(leaderboardCache.rank));
+    .from(leagueMembers)
+    .innerJoin(profiles, eq(leagueMembers.userId, profiles.id))
+    .leftJoin(
+      leaderboardCache,
+      and(
+        eq(leaderboardCache.userId, leagueMembers.userId),
+        eq(leaderboardCache.leagueId, leagueMembers.leagueId),
+      ),
+    )
+    .where(
+      and(
+        eq(leagueMembers.leagueId, leagueId),
+        eq(leagueMembers.status, "accepted"),
+      ),
+    )
+    .orderBy(
+      asc(leaderboardCache.rank),
+      desc(sql`coalesce(${leaderboardCache.totalPoints}, 0)`),
+      asc(profiles.displayName),
+    );
 }
 
 export async function getUserLeagues(userId: string) {

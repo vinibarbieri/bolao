@@ -102,7 +102,7 @@ export default async function LeagueDetailPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leaderboard.map((entry) => (
+                {leaderboard.map((entry, index) => (
                   <ClickableRow
                     key={entry.userId}
                     href={`/compare/${entry.userId}`}
@@ -120,7 +120,7 @@ export default async function LeagueDetailPage({
                                 : "text-muted-foreground",
                         )}
                       >
-                        {entry.rank}
+                        {entry.rank ?? index + 1}
                       </span>
                     </TableCell>
                     <TableCell>

@@ -99,7 +99,7 @@ export function LeagueLeaderboard({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {leaderboard.map((entry) => (
+              {leaderboard.map((entry, index) => (
                 <ClickableRow
                   key={entry.userId}
                   href={`/compare/${entry.userId}`}
@@ -117,7 +117,7 @@ export function LeagueLeaderboard({
                               : "text-muted-foreground",
                       )}
                     >
-                      {entry.rank}
+                      {entry.rank ?? index + 1}
                     </span>
                   </TableCell>
                   <TableCell>
