@@ -73,18 +73,26 @@ export async function ensureProfile() {
     .limit(1);
 
   if (existing.length === 0) {
-    await db.insert(profiles).values({
-      id: user.id,
-      displayName:
-        user.user_metadata?.full_name ?? user.email ?? "Anonymous",
-      avatarUrl: user.user_metadata?.avatar_url ?? null,
-    });
+    // onConflictDoNothing guards the concurrent-render race the /join invite
+    // page triggers: two renders both see no profile and both try to insert.
+    await db
+      .insert(profiles)
+      .values({
+        id: user.id,
+        displayName:
+          user.user_metadata?.full_name ?? user.email ?? "Anonymous",
+        avatarUrl: user.user_metadata?.avatar_url ?? null,
+      })
+      .onConflictDoNothing();
 
     // Also create prediction visibility
-    await db.insert(predictionVisibility).values({
-      userId: user.id,
-      isPublic: false,
-    });
+    await db
+      .insert(predictionVisibility)
+      .values({
+        userId: user.id,
+        isPublic: false,
+      })
+      .onConflictDoNothing();
   }
 
   return user.id;
@@ -414,7 +422,7 @@ export async function saveGoldenTrio(
 // === Leagues ===
 
 export async function createLeague(name: string) {
-  const userId = await getAuthUserId();
+  const userId = await ensureProfile();
   const inviteCode = nanoid(8);
 
   const [league] = await db
@@ -434,7 +442,7 @@ export async function createLeague(name: string) {
 }
 
 export async function joinLeague(inviteCode: string) {
-  const userId = await getAuthUserId();
+  const userId = await ensureProfile();
 
   const league = await db
     .select()
@@ -475,7 +483,7 @@ export async function joinLeague(inviteCode: string) {
 // Idempotent join used by the invite-link flow. Unlike joinLeague it does
 // not throw when the user is already a member — it just returns the league.
 export async function joinLeagueByCode(inviteCode: string) {
-  const userId = await getAuthUserId();
+  const userId = await ensureProfile();
 
   const league = await db
     .select()
@@ -487,25 +495,18 @@ export async function joinLeagueByCode(inviteCode: string) {
     throw new Error("Invalid invite code");
   }
 
-  const existing = await db
-    .select()
-    .from(leagueMembers)
-    .where(
-      and(
-        eq(leagueMembers.leagueId, league[0].id),
-        eq(leagueMembers.userId, userId)
-      )
-    )
-    .limit(1);
-
-  if (existing.length === 0) {
-    await db.insert(leagueMembers).values({
+  // Atomic idempotent join: onConflictDoNothing handles the already-a-member
+  // case and the double-render race the invite page triggers. No revalidatePath
+  // here — this runs during the /join page's render where it is unsupported,
+  // and the page redirects to /leagues/[id] which fetches fresh data anyway.
+  await db
+    .insert(leagueMembers)
+    .values({
       leagueId: league[0].id,
       userId,
       status: "accepted",
-    });
-    revalidatePath("/leagues");
-  }
+    })
+    .onConflictDoNothing();
 
   return league[0];
 }

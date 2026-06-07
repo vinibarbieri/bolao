@@ -79,7 +79,8 @@ export default async function JoinLeaguePage({
     try {
       const joined = await joinLeagueByCode(inviteCode);
       leagueId = joined.id;
-    } catch {
+    } catch (e) {
+      console.error("joinLeagueByCode failed", e);
       redirect("/leagues?error=invalid-invite");
     }
     redirect(`/leagues/${leagueId}`);
