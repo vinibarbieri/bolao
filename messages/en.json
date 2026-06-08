@@ -283,12 +283,31 @@
   },
   "Login": {
     "subtitle": "World Cup prediction game",
-    "devMode": "Dev mode — email/password login",
+    "devMode": "Dev mode — email/password prefilled",
+    "orDivider": "or",
+    "name": "Name",
     "email": "Email",
     "password": "Password",
     "signingIn": "Signing in...",
     "signIn": "Sign in",
-    "signInWithGoogle": "Sign in with Google"
+    "signUp": "Sign up",
+    "signInWithGoogle": "Sign in with Google",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "forgotPassword": "Forgot password?",
+    "forgotNeedEmail": "Enter your email first",
+    "forgotSent": "If that email exists, a reset link is on its way",
+    "signupNoSession": "Could not sign up. That email may already be registered — try logging in."
+  },
+  "ResetPassword": {
+    "title": "Reset password",
+    "subtitle": "Choose a new password",
+    "newPassword": "New password",
+    "submit": "Update password",
+    "saving": "Saving...",
+    "success": "Password updated",
+    "invalidLink": "This reset link is invalid or has expired.",
+    "backToLogin": "Back to login"
   },
   "Scoring": {
     "label": "Scoring"

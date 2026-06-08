@@ -283,12 +283,31 @@
   },
   "Login": {
     "subtitle": "Jogo de previsões da Copa do Mundo",
-    "devMode": "Modo dev — login com email/senha",
+    "devMode": "Modo dev — email/senha preenchidos",
+    "orDivider": "ou",
+    "name": "Nome",
     "email": "Email",
     "password": "Senha",
     "signingIn": "Entrando...",
     "signIn": "Entrar",
-    "signInWithGoogle": "Entrar com Google"
+    "signUp": "Cadastrar",
+    "signInWithGoogle": "Entrar com Google",
+    "noAccount": "Não tem uma conta?",
+    "haveAccount": "Já tem uma conta?",
+    "forgotPassword": "Esqueceu a senha?",
+    "forgotNeedEmail": "Digite seu email primeiro",
+    "forgotSent": "Se esse email existir, um link de redefinição está a caminho",
+    "signupNoSession": "Não foi possível cadastrar. Esse email pode já estar registrado — tente entrar."
+  },
+  "ResetPassword": {
+    "title": "Redefinir senha",
+    "subtitle": "Escolha uma nova senha",
+    "newPassword": "Nova senha",
+    "submit": "Atualizar senha",
+    "saving": "Salvando...",
+    "success": "Senha atualizada",
+    "invalidLink": "Este link de redefinição é inválido ou expirou.",
+    "backToLogin": "Voltar para o login"
   },
   "Scoring": {
     "label": "Pontuação"
