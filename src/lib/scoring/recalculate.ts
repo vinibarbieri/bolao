@@ -22,6 +22,14 @@ export async function recalculateAllScores() {
   const actualChampionId = finalMatch[0]?.winnerTeamId ?? null;
 
   await db.transaction(async (tx) => {
+    // Serialize concurrent recalcs. This whole function is delete-all + reinsert;
+    // two overlapping runs under the transaction-mode pooler (separate backends,
+    // READ COMMITTED) each delete then insert their own set, leaving duplicate
+    // user_scores rows (totals stay correct since they're computed in-memory).
+    // A transaction-level advisory lock forces concurrent runs to queue, and the
+    // lock auto-releases on commit/rollback (safe under pgBouncer transaction mode).
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(911002)`);
+
     // Clear all existing scores
     await tx.delete(userScores);
     await tx.delete(leaderboardCache);
