@@ -86,7 +86,7 @@ function CategoryBar({
         disabled={!expandable}
         aria-expanded={open}
         className={cn(
-          "flex w-full flex-col gap-2.5 px-4 py-3 text-left transition-colors",
+          "flex w-full flex-col gap-2.5 px-3 py-4 text-left transition-colors",
           expandable && "hover:bg-muted/50",
           !expandable && "cursor-default"
         )}
@@ -142,7 +142,7 @@ function TrioCard({
         disabled={!expandable}
         aria-expanded={open}
         className={cn(
-          "flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors",
+          "flex w-full items-center justify-between gap-2 px-5 py-4 text-left transition-colors",
           expandable && "hover:bg-muted/50",
           !expandable && "cursor-default"
         )}
