@@ -97,7 +97,17 @@ export default async function DashboardPage() {
         <Trophy className="pointer-events-none absolute -right-6 -top-6 h-44 w-44 text-brand-foreground/10" />
       </div>
 
-      {isLocked && (
+
+
+      {initialLeagueId && (
+        <LeagueLeaderboard
+          leagues={leagues.map((l) => ({ id: l.id, name: l.name }))}
+          initialLeagueId={initialLeagueId}
+          initialLeaderboard={initialLeaderboard}
+        />
+      )}
+
+            {isLocked && (
         <Card className="border-third/50 bg-third/10">
           <CardContent className="flex items-center gap-3 py-4">
             <Lock className="h-5 w-5 text-third-foreground" />
@@ -182,14 +192,6 @@ export default async function DashboardPage() {
           tint="text-chart-5"
         />
       </div>
-
-      {initialLeagueId && (
-        <LeagueLeaderboard
-          leagues={leagues.map((l) => ({ id: l.id, name: l.name }))}
-          initialLeagueId={initialLeagueId}
-          initialLeaderboard={initialLeaderboard}
-        />
-      )}
 
       {!isLocked && completedSteps < steps.length && (
         <Card>
