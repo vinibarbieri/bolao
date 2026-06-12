@@ -8,6 +8,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { calculateGroupScores } from "./group-scoring";
 import { calculateKnockoutScores } from "./knockout-scoring";
 import { calculateAwardScores, calculateTrioScores } from "./award-scoring";
+import { serializeDetail } from "./breakdown";
 
 export async function recalculateAllScores() {
   const allUsers = await db.select().from(profiles);
@@ -39,9 +40,18 @@ export async function recalculateAllScores() {
         ...trioScores,
       ];
 
-      // Insert score rows
+      // Insert score rows. Persist the structured detail as JSON so the value
+      // is recoverable; the UI recomputes/localizes breakdown text at render.
       if (allScores.length > 0) {
-        await tx.insert(userScores).values(allScores);
+        await tx.insert(userScores).values(
+          allScores.map((row) => ({
+            userId: row.userId,
+            category: row.category,
+            subDetail: row.subDetail,
+            points: row.points,
+            description: serializeDetail(row.detail),
+          }))
+        );
       }
 
       // Calculate totals

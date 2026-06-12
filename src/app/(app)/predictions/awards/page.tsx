@@ -1,7 +1,8 @@
 import { requireUser } from "@/lib/supabase/auth";
-import { getUserAwardPredictions, getAllPlayers, getUserScoreBreakdown } from "../../queries";
+import { getUserAwardPredictions, getAllPlayers, getUserScoreBreakdown, getTournamentConfig } from "../../queries";
 import { AwardsPredictionClient } from "./awards-client";
 import { PageHeader } from "@/components/page-header";
+import { LockedBanner } from "@/components/locked-banner";
 import { AWARD_POINTS } from "@/lib/scoring/award-scoring";
 import { Award } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -10,11 +11,13 @@ export default async function AwardsPage() {
   const user = await requireUser();
   const t = await getTranslations("Awards");
 
-  const [predictions, players, scoreBreakdown] = await Promise.all([
+  const [predictions, players, scoreBreakdown, config] = await Promise.all([
     getUserAwardPredictions(user.id),
     getAllPlayers(),
     getUserScoreBreakdown(user.id),
+    getTournamentConfig(),
   ]);
+  const locked = config?.isLocked ?? false;
 
   const awardPointsMap: Record<string, number> = {};
   for (const row of scoreBreakdown.filter((r) => r.category === "awards")) {
@@ -29,11 +32,14 @@ export default async function AwardsPage() {
         description={t("description")}
       />
 
+      {locked && <LockedBanner />}
+
       <AwardsPredictionClient
         existingPredictions={predictions}
         players={players}
         earnedPointsMap={awardPointsMap}
         awardPointsConfig={AWARD_POINTS}
+        locked={locked}
       />
     </div>
   );

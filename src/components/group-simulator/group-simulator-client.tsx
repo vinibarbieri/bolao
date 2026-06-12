@@ -34,6 +34,8 @@ interface Props {
   >;
   initialThirdPlaces: string[];
   teamPointsMap: Record<string, number>;
+  /** Render predictions read-only (tournament started). */
+  locked?: boolean;
 }
 
 export function GroupSimulatorClient({
@@ -41,6 +43,7 @@ export function GroupSimulatorClient({
   initialScores,
   initialThirdPlaces,
   teamPointsMap,
+  locked = false,
 }: Props) {
   const t = useTranslations("Groups");
   const store = useGroupSimulatorStore();
@@ -133,7 +136,7 @@ export function GroupSimulatorClient({
       .catch(() => {});
   }, [commit]);
 
-  useUnsavedChanges({ isDirty: store.isDirty, onSave: commit });
+  useUnsavedChanges({ isDirty: !locked && store.isDirty, onSave: commit });
 
   return (
     <div className="space-y-6">
@@ -186,6 +189,7 @@ export function GroupSimulatorClient({
         <div className="text-muted-foreground">{t("loading")}</div>
       ) : (
       <>
+      <div className={locked ? "pointer-events-none opacity-90" : ""}>
       <Tabs
         value={store.activeView}
         onValueChange={(v) =>
@@ -280,7 +284,9 @@ export function GroupSimulatorClient({
           </div>
         </TabsContent>
       </Tabs>
+      </div>
 
+      {!locked && (
       <div className="sticky bottom-4 flex items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
         <Button
           onClick={handleSave}
@@ -303,6 +309,7 @@ export function GroupSimulatorClient({
           <span className="text-sm text-muted-foreground">{t("allSaved")}</span>
         )}
       </div>
+      )}
       </>
       )}
 

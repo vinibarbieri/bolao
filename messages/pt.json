@@ -279,7 +279,29 @@
     "round_third": "Terceiro Lugar",
     "round_final": "Final",
     "privateTitle": "Palpites privados",
-    "privateDescription": "{name} ainda não tornou os palpites públicos. Eles ficarão visíveis quando a Copa começar."
+    "privateDescription": "{name} ainda não tornou os palpites públicos. Eles ficarão visíveis quando a Copa começar.",
+    "round_champion": "Campeão",
+    "breakdown": {
+      "groupExact": "{team} terminou corretamente em {position} no Grupo {group}",
+      "groupAdvance": "{team} previsto corretamente para avançar do Grupo {group}",
+      "groupThird": "{team} previsto corretamente como 3º colocado classificado do Grupo {group}",
+      "knockoutReach": "{team} previsto corretamente para alcançar {round}",
+      "awardCorrect": "Previsão correta: {award}",
+      "trioMotm": "Escolha do Trio de Ouro venceu {count, plural, one {# prêmio de Craque do Jogo} other {# prêmios de Craque do Jogo}} ({points} pts)",
+      "subGroup": "Grupo {group}",
+      "subSlot": "Vaga {slot}",
+      "total": "Total",
+      "totalPoints": "{points} pts",
+      "ofPossible": "{earned} de {possible}",
+      "trioSummary": "{points} pts · {count, plural, one {# acerto de Craque do Jogo} other {# acertos de Craque do Jogo}}",
+      "empty": "Nenhum ponto nesta categoria ainda",
+      "awardTypes": {
+        "golden_boot": "Chuteira de Ouro",
+        "golden_glove": "Luva de Ouro",
+        "top_assist": "Mais Assistências",
+        "goal_of_tournament": "Gol do Torneio"
+      }
+    }
   },
   "Login": {
     "subtitle": "Jogo de previsões da Copa do Mundo",
@@ -351,6 +373,10 @@
     "selectExact3": "Selecione exatamente 3 jogadores",
     "saved": "Trio de Ouro salvo!",
     "failedSave": "Falha ao salvar"
+  },
+  "Locked": {
+    "title": "Palpites bloqueados",
+    "description": "O torneio começou, então os palpites não podem mais ser alterados. Você ainda pode ver seus palpites."
   },
   "UnsavedChanges": {
     "title": "Alterações não salvas",

@@ -23,20 +23,25 @@ import {
 } from "@/lib/tournament/third-place-lookup";
 import { resolveR32Matchups } from "@/lib/tournament/bracket-mapping";
 import { POINTS as KNOCKOUT_POINTS } from "@/lib/scoring/knockout-scoring";
+import {
+  parseDetail,
+  describeScore,
+  subDetailLabel,
+} from "@/lib/scoring/breakdown";
+import { MAX_POINTS } from "@/lib/scoring/max-points";
+import {
+  ScoreBreakdownPanel,
+  type BreakdownRow,
+  type BreakdownCategory,
+} from "./score-breakdown-panel";
 import { db } from "@/db";
 import { profiles } from "@/db/schema/profiles";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ListChecks, Lock } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { Lock } from "lucide-react";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export default async function ComparePage({
   params,
@@ -46,6 +51,7 @@ export default async function ComparePage({
   const { userId: compareUserId } = await params;
   const currentUser = await requireUser();
   const t = await getTranslations("Compare");
+  const locale = await getLocale();
 
   const profile = await db
     .select()
@@ -107,6 +113,8 @@ export default async function ComparePage({
     getUserGoldenTrio(compareUserId),
     getAllPlayers(),
     getTeamsByGroup(),
+    // Single cheap read of precomputed scores. Each row's `description` holds
+    // language-neutral structured JSON, translated to the active locale below.
     getUserScoreBreakdown(compareUserId),
   ]);
 
@@ -219,6 +227,72 @@ export default async function ComparePage({
       </Card>
     );
 
+  // Bucket the precomputed scores by category and translate each row server-side
+  // (translation needs the request locale). The client panel renders the totals,
+  // accuracy bars, and expand/collapse over this plain data.
+  const groupRows: BreakdownRow[] = [];
+  const knockoutRows: BreakdownRow[] = [];
+  const awardRows: BreakdownRow[] = [];
+  const trioRows: BreakdownRow[] = [];
+  let total = 0;
+  let trioMotmCount = 0;
+  for (const score of scoreBreakdown) {
+    const detail = parseDetail(score.description);
+    // Legacy rows (pre-JSON) fall back to their stored prose until the next
+    // recalculate rewrites them.
+    const main = detail
+      ? describeScore(detail, t, locale)
+      : (score.description ?? "");
+    // The main line already names the group/round/award, so the parenthetical
+    // sub-detail is redundant there. Only the Golden Trio slot adds information.
+    const sub =
+      score.category === "golden_trio"
+        ? subDetailLabel(score.category, score.subDetail, t)
+        : "";
+    const row: BreakdownRow = { main, sub, points: score.points };
+    total += score.points;
+    switch (score.category) {
+      case "group":
+        groupRows.push(row);
+        break;
+      case "knockout":
+        knockoutRows.push(row);
+        break;
+      case "awards":
+        awardRows.push(row);
+        break;
+      case "golden_trio":
+        trioRows.push(row);
+        if (detail?.kind === "trioMotm") trioMotmCount += detail.count;
+        break;
+    }
+  }
+  const sum = (rows: BreakdownRow[]) =>
+    rows.reduce((acc, r) => acc + r.points, 0);
+  const breakdownCategories: BreakdownCategory[] = [
+    {
+      key: "group",
+      labelKey: "tabGroups",
+      earned: sum(groupRows),
+      possible: MAX_POINTS.group,
+      rows: groupRows,
+    },
+    {
+      key: "knockout",
+      labelKey: "tabKnockout",
+      earned: sum(knockoutRows),
+      possible: MAX_POINTS.knockout,
+      rows: knockoutRows,
+    },
+    {
+      key: "awards",
+      labelKey: "tabAwards",
+      earned: sum(awardRows),
+      possible: MAX_POINTS.awards,
+      rows: awardRows,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -239,32 +313,15 @@ export default async function ComparePage({
       </div>
 
       {scoreBreakdown.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ListChecks className="h-5 w-5 text-primary" />
-              {t("scoreBreakdown")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {scoreBreakdown.map((score) => (
-                <div
-                  key={score.id}
-                  className="flex items-center justify-between rounded-md border px-3 py-2"
-                >
-                  <div>
-                    <span className="font-medium">{score.description}</span>
-                    <span className="ml-2 text-sm text-muted-foreground">
-                      ({score.subDetail})
-                    </span>
-                  </div>
-                  <Badge variant="default">+{score.points}</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <ScoreBreakdownPanel
+          total={total}
+          categories={breakdownCategories}
+          trio={{
+            earned: sum(trioRows),
+            motmCount: trioMotmCount,
+            rows: trioRows,
+          }}
+        />
       )}
 
       <ComparePredictionsTabs

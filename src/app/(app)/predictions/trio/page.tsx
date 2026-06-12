@@ -1,7 +1,8 @@
 import { requireUser } from "@/lib/supabase/auth";
-import { getUserGoldenTrio, getAllPlayers, getUserScoreBreakdown } from "../../queries";
+import { getUserGoldenTrio, getAllPlayers, getUserScoreBreakdown, getTournamentConfig } from "../../queries";
 import { GoldenTrioClient } from "./trio-client";
 import { PageHeader } from "@/components/page-header";
+import { LockedBanner } from "@/components/locked-banner";
 import { ScoringGuide } from "@/components/scoring-guide";
 import { TRIO_MOTM_POINTS } from "@/lib/scoring/award-scoring";
 import { Star } from "lucide-react";
@@ -11,11 +12,13 @@ export default async function GoldenTrioPage() {
   const user = await requireUser();
   const t = await getTranslations("GoldenTrio");
 
-  const [trio, players, scoreBreakdown] = await Promise.all([
+  const [trio, players, scoreBreakdown, config] = await Promise.all([
     getUserGoldenTrio(user.id),
     getAllPlayers(),
     getUserScoreBreakdown(user.id),
+    getTournamentConfig(),
   ]);
+  const locked = config?.isLocked ?? false;
 
   const trioSlotPoints: Record<number, number> = {};
   for (const row of scoreBreakdown.filter((r) => r.category === "golden_trio")) {
@@ -33,7 +36,9 @@ export default async function GoldenTrioPage() {
 
       <ScoringGuide items={[{ label: t("perMotm"), points: TRIO_MOTM_POINTS }]} />
 
-      <GoldenTrioClient existingTrio={trio} players={players} slotPoints={trioSlotPoints} />
+      {locked && <LockedBanner />}
+
+      <GoldenTrioClient existingTrio={trio} players={players} slotPoints={trioSlotPoints} locked={locked} />
     </div>
   );
 }

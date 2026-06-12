@@ -35,10 +35,13 @@ export function GoldenTrioClient({
   existingTrio,
   players,
   slotPoints = {},
+  locked = false,
 }: {
   existingTrio: TrioPick[];
   players: Player[];
   slotPoints?: Record<number, number>;
+  /** Render predictions read-only (tournament started). */
+  locked?: boolean;
 }) {
   const t = useTranslations("GoldenTrio");
 
@@ -125,7 +128,7 @@ export function GoldenTrioClient({
 
   // Only offer "Save & leave" when exactly 3 players are selected.
   useUnsavedChanges({
-    isDirty,
+    isDirty: !locked && isDirty,
     onSave: filledCount === 3 ? commit : undefined,
   });
 
@@ -139,7 +142,7 @@ export function GoldenTrioClient({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={cn("grid gap-4 sm:grid-cols-3", locked && "pointer-events-none opacity-90")}>
         {[0, 1, 2].map((slot) => {
           const playerId = picks[slot];
           const player = playerId ? playerMap.get(playerId) : null;
@@ -256,6 +259,7 @@ export function GoldenTrioClient({
         </Card>
       )}
 
+      {!locked && (
       <div className="sticky bottom-4 flex items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
         <Button
           onClick={handleSave}
@@ -273,6 +277,7 @@ export function GoldenTrioClient({
           {t("selected", { count: picks.filter(Boolean).length })}
         </span>
       </div>
+      )}
     </div>
   );
 }
