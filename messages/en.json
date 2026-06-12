@@ -71,6 +71,8 @@
     "placements": "Placements",
     "scoreSimulator": "Score Simulator",
     "splitView": "Split View",
+    "realResults": "Real Results",
+    "noResultsYet": "No results yet for this group.",
     "saveAll": "Save All Group Predictions",
     "saving": "Saving...",
     "saved": "Saved",

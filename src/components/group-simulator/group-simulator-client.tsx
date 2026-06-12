@@ -7,7 +7,7 @@ import {
   GROUP_LETTERS,
 } from "@/lib/stores/group-simulator-store";
 import { PlacementsTable } from "./placements-table";
-import { ScoresTable, ComputedStandingsCard } from "./scores-table";
+import { RealResultsView, type RealGroupResult } from "./real-results";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NextStepDialog } from "@/components/next-step-dialog";
@@ -34,6 +34,8 @@ interface Props {
   >;
   initialThirdPlaces: string[];
   teamPointsMap: Record<string, number>;
+  /** Real tournament results per group (read-only). */
+  realResults: Record<string, RealGroupResult>;
   /** Render predictions read-only (tournament started). */
   locked?: boolean;
 }
@@ -43,6 +45,7 @@ export function GroupSimulatorClient({
   initialScores,
   initialThirdPlaces,
   teamPointsMap,
+  realResults,
   locked = false,
 }: Props) {
   const t = useTranslations("Groups");
@@ -189,102 +192,39 @@ export function GroupSimulatorClient({
         <div className="text-muted-foreground">{t("loading")}</div>
       ) : (
       <>
-      <div className={locked ? "pointer-events-none opacity-90" : ""}>
       <Tabs
-        value={store.activeView}
+        value={store.activeView === "real" ? "real" : "placements"}
         onValueChange={(v) =>
-          store.setActiveView(v as "placements" | "scores" | "split")
+          store.setActiveView(v as "placements" | "real")
         }
       >
         <TabsList>
           <TabsTrigger value="placements">{t("placements")}</TabsTrigger>
-          <TabsTrigger value="scores">{t("scoreSimulator")}</TabsTrigger>
-          <TabsTrigger value="split">{t("splitView")}</TabsTrigger>
+          <TabsTrigger value="real">{t("realResults")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="placements">
-          <PlacementsTable
+          <div className={locked ? "pointer-events-none opacity-90" : ""}>
+            <PlacementsTable
+              group={store.activeGroup}
+              placements={store.placements[store.activeGroup]}
+              onReorder={(from, to) =>
+                store.reorderPlacement(store.activeGroup, from, to)
+              }
+              teamPointsMap={teamPointsMap}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="real">
+          <RealResultsView
             group={store.activeGroup}
-            placements={store.placements[store.activeGroup]}
-            onReorder={(from, to) =>
-              store.reorderPlacement(store.activeGroup, from, to)
+            result={
+              realResults[store.activeGroup] ?? { matches: [], standings: [] }
             }
-            teamPointsMap={teamPointsMap}
           />
         </TabsContent>
-
-        <TabsContent value="scores">
-          <div className="space-y-4">
-            <ScoresTable
-              group={store.activeGroup}
-              scores={store.scores[store.activeGroup]}
-              standings={store.computedStandings[store.activeGroup]}
-              placements={store.placements[store.activeGroup]}
-              onScoreChange={(matchId, home, away) =>
-                store.setScore(store.activeGroup, matchId, home, away)
-              }
-            />
-            <Button
-              variant="secondary"
-              onClick={() => store.syncFromScores(store.activeGroup)}
-              disabled={
-                store.computedStandings[store.activeGroup].length === 0
-              }
-            >
-              {t("syncToPlacement")}
-            </Button>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="split">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div>
-              <h3 className="mb-2 text-sm font-medium text-muted-foreground">
-                {t("yourPlacements")}
-              </h3>
-              <PlacementsTable
-                group={store.activeGroup}
-                placements={store.placements[store.activeGroup]}
-                onReorder={(from, to) =>
-                  store.reorderPlacement(store.activeGroup, from, to)
-                }
-                teamPointsMap={teamPointsMap}
-              />
-              <ComputedStandingsCard
-                standings={store.computedStandings[store.activeGroup]}
-                className="mt-4 hidden lg:block"
-              />
-            </div>
-            <div>
-              <h3 className="mb-2 text-sm font-medium text-muted-foreground">
-                {t("scoreSimulator")}
-              </h3>
-              <ScoresTable
-                group={store.activeGroup}
-                scores={store.scores[store.activeGroup]}
-                standings={store.computedStandings[store.activeGroup]}
-                placements={store.placements[store.activeGroup]}
-                onScoreChange={(matchId, home, away) =>
-                  store.setScore(store.activeGroup, matchId, home, away)
-                }
-                standingsWrapperClassName="lg:hidden"
-              />
-              <Button
-                variant="secondary"
-                size="sm"
-                className="mt-2"
-                onClick={() => store.syncFromScores(store.activeGroup)}
-                disabled={
-                  store.computedStandings[store.activeGroup].length === 0
-                }
-              >
-                {t("syncToPlacementShort")}
-              </Button>
-            </div>
-          </div>
-        </TabsContent>
       </Tabs>
-      </div>
 
       {!locked && (
       <div className="sticky bottom-4 flex items-center gap-3 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
