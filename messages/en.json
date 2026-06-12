@@ -290,6 +290,11 @@
       "trioMotm": "Golden Trio pick won {count, plural, one {# MOTM award} other {# MOTM awards}} ({points} pts)",
       "subGroup": "Group {group}",
       "subSlot": "Slot {slot}",
+      "total": "Total",
+      "totalPoints": "{points} pts",
+      "ofPossible": "{earned} of {possible}",
+      "trioSummary": "{points} pts · {count, plural, one {# MOTM hit} other {# MOTM hits}}",
+      "empty": "No points in this category yet",
       "awardTypes": {
         "golden_boot": "Golden Boot",
         "golden_glove": "Golden Glove",

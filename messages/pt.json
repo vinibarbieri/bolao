@@ -290,6 +290,11 @@
       "trioMotm": "Escolha do Trio de Ouro venceu {count, plural, one {# prêmio de Craque do Jogo} other {# prêmios de Craque do Jogo}} ({points} pts)",
       "subGroup": "Grupo {group}",
       "subSlot": "Vaga {slot}",
+      "total": "Total",
+      "totalPoints": "{points} pts",
+      "ofPossible": "{earned} de {possible}",
+      "trioSummary": "{points} pts · {count, plural, one {# acerto de Craque do Jogo} other {# acertos de Craque do Jogo}}",
+      "empty": "Nenhum ponto nesta categoria ainda",
       "awardTypes": {
         "golden_boot": "Chuteira de Ouro",
         "golden_glove": "Luva de Ouro",
