@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { knockoutPredictions } from "@/db/schema/predictions";
 import { matches } from "@/db/schema/matches";
+import type { ScoreRow } from "./breakdown";
 import { eq, and, ne } from "drizzle-orm";
 
 export const POINTS: Record<string, number> = {
@@ -55,13 +56,7 @@ export async function calculateKnockoutScores(userId: string) {
     }
   }
 
-  const scoreRows: {
-    userId: string;
-    category: "knockout";
-    subDetail: string;
-    points: number;
-    description: string;
-  }[] = [];
+  const scoreRows: ScoreRow[] = [];
 
   for (const pred of predictions) {
     const actualRounds = actualTeamRounds.get(pred.teamId);
@@ -72,9 +67,13 @@ export async function calculateKnockoutScores(userId: string) {
       scoreRows.push({
         userId,
         category: "knockout",
-        subDetail: pred.round.toUpperCase(),
+        subDetail: pred.round,
         points: pts,
-        description: `${pred.teamId} correctly predicted to reach ${roundLabel(pred.round)}`,
+        detail: {
+          kind: "knockoutReach",
+          team: pred.teamId,
+          round: pred.round,
+        },
       });
     }
   }
@@ -91,17 +90,4 @@ function getNextRound(currentRound: string): string | null {
     final: "champion",
   };
   return progression[currentRound] ?? null;
-}
-
-function roundLabel(round: string): string {
-  const labels: Record<string, string> = {
-    r32: "Round of 32",
-    r16: "Round of 16",
-    qf: "Quarter-Finals",
-    sf: "Semi-Finals",
-    third: "3rd Place Match",
-    final: "Final",
-    champion: "Champion",
-  };
-  return labels[round] ?? round;
 }

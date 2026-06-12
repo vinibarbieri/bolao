@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { groupPredictions } from "@/db/schema/predictions";
 import { groupStandings } from "@/db/schema/teams";
-import { userScores } from "@/db/schema/scores";
+import type { ScoreRow } from "./breakdown";
 import { eq } from "drizzle-orm";
 
 export const POINTS = {
@@ -19,13 +19,7 @@ export async function calculateGroupScores(userId: string) {
   const standings = await db.select().from(groupStandings);
 
   const standingsMap = new Map(standings.map((s) => [s.teamId, s]));
-  const scoreRows: {
-    userId: string;
-    category: "group";
-    subDetail: string;
-    points: number;
-    description: string;
-  }[] = [];
+  const scoreRows: ScoreRow[] = [];
 
   for (const pred of predictions) {
     const actual = standingsMap.get(pred.teamId);
@@ -36,9 +30,14 @@ export async function calculateGroupScores(userId: string) {
       scoreRows.push({
         userId,
         category: "group",
-        subDetail: `Group ${pred.groupLetter}`,
+        subDetail: pred.groupLetter,
         points: POINTS.EXACT_POSITION,
-        description: `${pred.teamId} correctly placed ${pred.predictedPosition}${ordinal(pred.predictedPosition)} in Group ${pred.groupLetter}`,
+        detail: {
+          kind: "groupExact",
+          team: pred.teamId,
+          position: pred.predictedPosition,
+          group: pred.groupLetter,
+        },
       });
     }
 
@@ -47,9 +46,13 @@ export async function calculateGroupScores(userId: string) {
       scoreRows.push({
         userId,
         category: "group",
-        subDetail: `Group ${pred.groupLetter}`,
+        subDetail: pred.groupLetter,
         points: POINTS.CORRECT_ADVANCE,
-        description: `${pred.teamId} correctly predicted to advance from Group ${pred.groupLetter}`,
+        detail: {
+          kind: "groupAdvance",
+          team: pred.teamId,
+          group: pred.groupLetter,
+        },
       });
     }
 
@@ -63,18 +66,16 @@ export async function calculateGroupScores(userId: string) {
       scoreRows.push({
         userId,
         category: "group",
-        subDetail: `Group ${pred.groupLetter}`,
+        subDetail: pred.groupLetter,
         points: POINTS.CORRECT_THIRD_QUALIFIES,
-        description: `${pred.teamId} correctly predicted as qualifying 3rd-place team from Group ${pred.groupLetter}`,
+        detail: {
+          kind: "groupThird",
+          team: pred.teamId,
+          group: pred.groupLetter,
+        },
       });
     }
   }
 
   return scoreRows;
-}
-
-function ordinal(n: number): string {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return s[(v - 20) % 10] || s[v] || s[0];
 }

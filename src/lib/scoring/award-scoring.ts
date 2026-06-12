@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { awardPredictions, actualAwards, goldenTrio } from "@/db/schema/predictions";
 import { matches } from "@/db/schema/matches";
+import type { ScoreRow } from "./breakdown";
 import { eq, and, isNotNull } from "drizzle-orm";
 
 export const TRIO_MOTM_POINTS = 2;
@@ -21,13 +22,7 @@ export async function calculateAwardScores(userId: string) {
   const actuals = await db.select().from(actualAwards);
   const actualsMap = new Map(actuals.map((a) => [a.awardType, a.playerId]));
 
-  const scoreRows: {
-    userId: string;
-    category: "awards";
-    subDetail: string;
-    points: number;
-    description: string;
-  }[] = [];
+  const scoreRows: ScoreRow[] = [];
 
   for (const pred of predictions) {
     if (!pred.playerId) continue;
@@ -41,7 +36,7 @@ export async function calculateAwardScores(userId: string) {
         category: "awards",
         subDetail: pred.awardType,
         points: pts,
-        description: `Correctly predicted ${formatAwardType(pred.awardType)}`,
+        detail: { kind: "awardCorrect", award: pred.awardType },
       });
     }
   }
@@ -69,13 +64,7 @@ export async function calculateTrioScores(userId: string) {
     motmCounts.set(m.motmPlayerId, (motmCounts.get(m.motmPlayerId) ?? 0) + 1);
   }
 
-  const scoreRows: {
-    userId: string;
-    category: "golden_trio";
-    subDetail: string;
-    points: number;
-    description: string;
-  }[] = [];
+  const scoreRows: ScoreRow[] = [];
 
   for (const pick of trio) {
     const count = motmCounts.get(pick.playerId) ?? 0;
@@ -83,16 +72,16 @@ export async function calculateTrioScores(userId: string) {
       scoreRows.push({
         userId,
         category: "golden_trio",
-        subDetail: `Slot ${pick.slot}`,
+        subDetail: String(pick.slot),
         points: count * TRIO_MOTM_POINTS,
-        description: `Golden Trio pick won ${count} MOTM award${count > 1 ? "s" : ""} (${count * TRIO_MOTM_POINTS} pts)`,
+        detail: {
+          kind: "trioMotm",
+          count,
+          points: count * TRIO_MOTM_POINTS,
+        },
       });
     }
   }
 
   return scoreRows;
-}
-
-function formatAwardType(type: string): string {
-  return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

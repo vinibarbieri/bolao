@@ -23,6 +23,11 @@ import {
 } from "@/lib/tournament/third-place-lookup";
 import { resolveR32Matchups } from "@/lib/tournament/bracket-mapping";
 import { POINTS as KNOCKOUT_POINTS } from "@/lib/scoring/knockout-scoring";
+import {
+  parseDetail,
+  describeScore,
+  subDetailLabel,
+} from "@/lib/scoring/breakdown";
 import { db } from "@/db";
 import { profiles } from "@/db/schema/profiles";
 import { eq } from "drizzle-orm";
@@ -36,7 +41,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ListChecks, Lock } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export default async function ComparePage({
   params,
@@ -46,6 +51,7 @@ export default async function ComparePage({
   const { userId: compareUserId } = await params;
   const currentUser = await requireUser();
   const t = await getTranslations("Compare");
+  const locale = await getLocale();
 
   const profile = await db
     .select()
@@ -107,6 +113,8 @@ export default async function ComparePage({
     getUserGoldenTrio(compareUserId),
     getAllPlayers(),
     getTeamsByGroup(),
+    // Single cheap read of precomputed scores. Each row's `description` holds
+    // language-neutral structured JSON, translated to the active locale below.
     getUserScoreBreakdown(compareUserId),
   ]);
 
@@ -248,20 +256,31 @@ export default async function ComparePage({
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {scoreBreakdown.map((score) => (
-                <div
-                  key={score.id}
-                  className="flex items-center justify-between rounded-md border px-3 py-2"
-                >
-                  <div>
-                    <span className="font-medium">{score.description}</span>
-                    <span className="ml-2 text-sm text-muted-foreground">
-                      ({score.subDetail})
-                    </span>
+              {scoreBreakdown.map((score) => {
+                const detail = parseDetail(score.description);
+                // Legacy rows (pre-JSON) fall back to their stored prose until
+                // the next recalculate rewrites them.
+                const main = detail
+                  ? describeScore(detail, t, locale)
+                  : score.description;
+                const sub = subDetailLabel(score.category, score.subDetail, t);
+                return (
+                  <div
+                    key={score.id}
+                    className="flex items-center justify-between rounded-md border px-3 py-2"
+                  >
+                    <div>
+                      <span className="font-medium">{main}</span>
+                      {sub && (
+                        <span className="ml-2 text-sm text-muted-foreground">
+                          ({sub})
+                        </span>
+                      )}
+                    </div>
+                    <Badge variant="default">+{score.points}</Badge>
                   </div>
-                  <Badge variant="default">+{score.points}</Badge>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>

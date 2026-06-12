@@ -279,7 +279,24 @@
     "round_third": "Third Place",
     "round_final": "Final",
     "privateTitle": "Predictions are private",
-    "privateDescription": "{name} hasn't made their predictions public yet. They'll be visible once the World Cup starts."
+    "privateDescription": "{name} hasn't made their predictions public yet. They'll be visible once the World Cup starts.",
+    "round_champion": "Champion",
+    "breakdown": {
+      "groupExact": "{team} correctly placed {position} in Group {group}",
+      "groupAdvance": "{team} correctly predicted to advance from Group {group}",
+      "groupThird": "{team} correctly predicted as a qualifying 3rd-place team from Group {group}",
+      "knockoutReach": "{team} correctly predicted to reach {round}",
+      "awardCorrect": "Correctly predicted {award}",
+      "trioMotm": "Golden Trio pick won {count, plural, one {# MOTM award} other {# MOTM awards}} ({points} pts)",
+      "subGroup": "Group {group}",
+      "subSlot": "Slot {slot}",
+      "awardTypes": {
+        "golden_boot": "Golden Boot",
+        "golden_glove": "Golden Glove",
+        "top_assist": "Top Assists",
+        "goal_of_tournament": "Goal of the Tournament"
+      }
+    }
   },
   "Login": {
     "subtitle": "World Cup prediction game",
