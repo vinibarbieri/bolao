@@ -352,6 +352,10 @@
     "saved": "Trio de Ouro salvo!",
     "failedSave": "Falha ao salvar"
   },
+  "Locked": {
+    "title": "Palpites bloqueados",
+    "description": "O torneio começou, então os palpites não podem mais ser alterados. Você ainda pode ver seus palpites."
+  },
   "UnsavedChanges": {
     "title": "Alterações não salvas",
     "description": "Você tem alterações não salvas. Deseja salvá-las antes de sair?",

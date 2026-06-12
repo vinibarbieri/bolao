@@ -1,7 +1,8 @@
 import { requireUser } from "@/lib/supabase/auth";
-import { getTeamsByGroup, getUserGroupPredictions, getGroupMatches, getUserScorePredictions, getUserScoreBreakdown } from "../queries";
+import { getTeamsByGroup, getUserGroupPredictions, getGroupMatches, getUserScorePredictions, getUserScoreBreakdown, getTournamentConfig } from "../queries";
 import { GroupSimulatorClient } from "@/components/group-simulator/group-simulator-client";
 import { PageHeader } from "@/components/page-header";
+import { LockedBanner } from "@/components/locked-banner";
 import { ScoringGuide } from "@/components/scoring-guide";
 import { POINTS as GROUP_POINTS } from "@/lib/scoring/group-scoring";
 import { Volleyball } from "lucide-react";
@@ -12,12 +13,14 @@ export default async function GroupsPage() {
   const user = await requireUser();
   const t = await getTranslations("Groups");
 
-  const [teamsByGroup, predictions, scorePredictions, scoreBreakdown] = await Promise.all([
+  const [teamsByGroup, predictions, scorePredictions, scoreBreakdown, config] = await Promise.all([
     getTeamsByGroup(),
     getUserGroupPredictions(user.id),
     getUserScorePredictions(user.id),
     getUserScoreBreakdown(user.id),
+    getTournamentConfig(),
   ]);
+  const locked = config?.isLocked ?? false;
 
   const teamPointsMap: Record<string, number> = {};
   for (const row of scoreBreakdown.filter((r) => r.category === "group")) {
@@ -86,11 +89,14 @@ export default async function GroupsPage() {
         ]}
       />
 
+      {locked && <LockedBanner />}
+
       <GroupSimulatorClient
         initialPlacements={initialPlacements}
         initialScores={initialScores}
         initialThirdPlaces={selectedThirdPlaces}
         teamPointsMap={teamPointsMap}
+        locked={locked}
       />
     </div>
   );

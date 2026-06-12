@@ -352,6 +352,10 @@
     "saved": "Golden Trio saved!",
     "failedSave": "Failed to save"
   },
+  "Locked": {
+    "title": "Predictions are locked",
+    "description": "The tournament has started, so predictions can no longer be changed. You can still view your picks."
+  },
   "UnsavedChanges": {
     "title": "Unsaved changes",
     "description": "You have unsaved changes. Do you want to save them before leaving?",

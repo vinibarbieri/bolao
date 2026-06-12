@@ -4,8 +4,10 @@ import {
   getUserBracketPicks,
   getTeamsByGroup,
   getUserScoreBreakdown,
+  getTournamentConfig,
 } from "../queries";
 import { BracketBuilderClient } from "@/components/bracket/bracket-builder-client";
+import { LockedBanner } from "@/components/locked-banner";
 import { getThirdPlaceAssignments, type GroupLetter } from "@/lib/tournament/third-place-lookup";
 import { resolveR32Matchups } from "@/lib/tournament/bracket-mapping";
 import { PageHeader } from "@/components/page-header";
@@ -17,12 +19,14 @@ export default async function BracketPage() {
   const user = await requireUser();
   const t = await getTranslations("Bracket");
 
-  const [predictions, bracketPicks, teamsByGroup, scoreBreakdown] = await Promise.all([
+  const [predictions, bracketPicks, teamsByGroup, scoreBreakdown, config] = await Promise.all([
     getUserGroupPredictions(user.id),
     getUserBracketPicks(user.id),
     getTeamsByGroup(),
     getUserScoreBreakdown(user.id),
+    getTournamentConfig(),
   ]);
+  const locked = config?.isLocked ?? false;
 
   const knockoutRoundPoints: Record<string, number> = {};
   for (const row of scoreBreakdown.filter((r) => r.category === "knockout")) {
@@ -92,6 +96,8 @@ export default async function BracketPage() {
         description={t("description")}
       />
 
+      {locked && <LockedBanner />}
+
       {!isReady ? (
         <div className="flex items-start gap-3 rounded-xl border border-third/50 bg-third/10 p-6">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-third-foreground" />
@@ -111,6 +117,7 @@ export default async function BracketPage() {
           resolvedMatchups={resolvedMatchups}
           knockoutRoundPoints={knockoutRoundPoints}
           knockoutPointsConfig={KNOCKOUT_POINTS}
+          readOnly={locked}
         />
       )}
     </div>

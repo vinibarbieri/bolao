@@ -60,11 +60,14 @@ export function AwardsPredictionClient({
   players,
   earnedPointsMap = {},
   awardPointsConfig = {},
+  locked = false,
 }: {
   existingPredictions: Prediction[];
   players: Player[];
   earnedPointsMap?: Record<string, number>;
   awardPointsConfig?: Record<string, number>;
+  /** Render predictions read-only (tournament started). */
+  locked?: boolean;
 }) {
   const t = useTranslations("Awards");
 
@@ -132,11 +135,11 @@ export function AwardsPredictionClient({
       .catch(() => {});
   };
 
-  useUnsavedChanges({ isDirty, onSave: commit });
+  useUnsavedChanges({ isDirty: !locked && isDirty, onSave: commit });
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={cn("grid gap-4 sm:grid-cols-2", locked && "pointer-events-none opacity-90")}>
         {AWARD_TYPE_KEYS.map((award) => {
           const Icon = award.icon;
           const sel = selections[award.type];
@@ -250,6 +253,7 @@ export function AwardsPredictionClient({
         })}
       </div>
 
+      {!locked && (
       <div className="sticky bottom-4 flex items-center rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           {saving ? (
@@ -260,6 +264,7 @@ export function AwardsPredictionClient({
           {saving ? t("saving") : t("saveAwards")}
         </Button>
       </div>
+      )}
 
       <NextStepDialog
         open={showTrioPrompt}

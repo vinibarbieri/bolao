@@ -24,9 +24,11 @@ interface ThirdPlaceTeam {
 interface Props {
   teams: ThirdPlaceTeam[];
   earnedThirdSet?: string[];
+  /** Render predictions read-only (tournament started). */
+  locked?: boolean;
 }
 
-export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) {
+export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [], locked = false }: Props) {
   const t = useTranslations("ThirdPlace");
   const earnedSet = new Set(earnedThirdSet);
   const router = useRouter();
@@ -98,10 +100,11 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
   const complete = selected.size === 8;
 
   // Only offer "Save & leave" when the selection is valid (exactly 8).
-  useUnsavedChanges({ isDirty, onSave: complete ? commit : undefined });
+  useUnsavedChanges({ isDirty: !locked && isDirty, onSave: complete ? commit : undefined });
 
   return (
     <div className="space-y-6">
+      {!locked && (
       <div className="sticky top-16 z-20 flex items-center gap-4 rounded-xl border bg-card/80 p-3 shadow-sm backdrop-blur">
         <div className="flex items-center gap-2">
           <Medal
@@ -134,8 +137,12 @@ export function ThirdPlaceSelectorClient({ teams, earnedThirdSet = [] }: Props) 
           {!saving && <ArrowRight className="h-4 w-4" />}
         </Button>
       </div>
+      )}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className={cn(
+        "grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+        locked && "pointer-events-none opacity-90",
+      )}>
         {teams
           .sort((a, b) => a.groupLetter.localeCompare(b.groupLetter))
           .map((team) => {

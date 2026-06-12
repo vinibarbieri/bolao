@@ -1,7 +1,8 @@
 import { requireUser } from "@/lib/supabase/auth";
-import { getUserGroupPredictions, getTeamsByGroup, getUserScoreBreakdown } from "../queries";
+import { getUserGroupPredictions, getTeamsByGroup, getUserScoreBreakdown, getTournamentConfig } from "../queries";
 import { ThirdPlaceSelectorClient } from "@/components/third-place/third-place-selector-client";
 import { PageHeader } from "@/components/page-header";
+import { LockedBanner } from "@/components/locked-banner";
 import { ScoringGuide } from "@/components/scoring-guide";
 import { POINTS as GROUP_POINTS } from "@/lib/scoring/group-scoring";
 import { Medal, AlertTriangle } from "lucide-react";
@@ -11,11 +12,13 @@ export default async function ThirdPlacePage() {
   const user = await requireUser();
   const t = await getTranslations("ThirdPlace");
 
-  const [predictions, teamsByGroup, scoreBreakdown] = await Promise.all([
+  const [predictions, teamsByGroup, scoreBreakdown, config] = await Promise.all([
     getUserGroupPredictions(user.id),
     getTeamsByGroup(),
     getUserScoreBreakdown(user.id),
+    getTournamentConfig(),
   ]);
+  const locked = config?.isLocked ?? false;
 
   const earnedThirdSet = new Set<string>();
   for (const row of scoreBreakdown.filter((r) => r.category === "group")) {
@@ -50,6 +53,8 @@ export default async function ThirdPlacePage() {
 
       <ScoringGuide items={[{ label: t("eachCorrectQualifier"), points: GROUP_POINTS.CORRECT_THIRD_QUALIFIES }]} />
 
+      {locked && <LockedBanner />}
+
       {!hasAllGroups ? (
         <div className="flex items-start gap-3 rounded-xl border border-third/50 bg-third/10 p-6">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-third-foreground" />
@@ -63,7 +68,7 @@ export default async function ThirdPlacePage() {
           </div>
         </div>
       ) : (
-        <ThirdPlaceSelectorClient teams={thirdPlaceTeams} earnedThirdSet={Array.from(earnedThirdSet)} />
+        <ThirdPlaceSelectorClient teams={thirdPlaceTeams} earnedThirdSet={Array.from(earnedThirdSet)} locked={locked} />
       )}
     </div>
   );
