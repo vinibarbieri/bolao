@@ -5,8 +5,10 @@ import { PageHeader } from "@/components/page-header";
 import { LockedBanner } from "@/components/locked-banner";
 import { ScoringGuide } from "@/components/scoring-guide";
 import { POINTS as GROUP_POINTS } from "@/lib/scoring/group-scoring";
+import { computeStandings } from "@/lib/scoring/standings-compute";
 import { Volleyball } from "lucide-react";
 import type { GroupLetter } from "@/lib/stores/group-simulator-store";
+import type { RealGroupResult } from "@/components/group-simulator/real-results";
 import { getTranslations } from "next-intl/server";
 
 export default async function GroupsPage() {
@@ -70,6 +72,29 @@ export default async function GroupsPage() {
     });
   }
 
+  const realResults: Record<string, RealGroupResult> = {};
+  for (const letter of groupLetters) {
+    const groupTeams = teamsByGroup[letter] || [];
+    const groupMatches = allGroupMatches[letter] || [];
+    const standings = computeStandings(groupMatches).map((row) => ({
+      ...row,
+      teamName: groupTeams.find((t) => t.id === row.teamId)?.name ?? row.teamId,
+    }));
+    realResults[letter] = {
+      matches: groupMatches.map((m) => ({
+        matchId: m.id,
+        homeTeamId: m.homeTeamId ?? "",
+        awayTeamId: m.awayTeamId ?? "",
+        homeScore: m.homeScore,
+        awayScore: m.awayScore,
+        homePenalties: m.homePenalties,
+        awayPenalties: m.awayPenalties,
+        status: m.status,
+      })),
+      standings,
+    };
+  }
+
   const selectedThirdPlaces = predictions
     .filter((p) => p.predictedPosition === 3 && p.advancesAsThird)
     .map((p) => p.teamId);
@@ -96,6 +121,7 @@ export default async function GroupsPage() {
         initialScores={initialScores}
         initialThirdPlaces={selectedThirdPlaces}
         teamPointsMap={teamPointsMap}
+        realResults={realResults}
         locked={locked}
       />
     </div>

@@ -42,7 +42,7 @@ interface GroupSimulatorState {
   computedStandings: Record<GroupLetter, ComputedStanding[]>;
   selectedThirdPlaces: string[]; // team IDs, max 8
   activeGroup: GroupLetter;
-  activeView: "placements" | "scores" | "split";
+  activeView: "placements" | "scores" | "split" | "real";
   isDirty: boolean;
   isInitialized: boolean;
 }
@@ -54,7 +54,7 @@ interface GroupSimulatorActions {
     selectedThirdPlaces: string[];
   }): void;
   setActiveGroup(group: GroupLetter): void;
-  setActiveView(view: "placements" | "scores" | "split"): void;
+  setActiveView(view: "placements" | "scores" | "split" | "real"): void;
   reorderPlacement(
     group: GroupLetter,
     fromIndex: number,
