@@ -234,7 +234,9 @@
     "importFixtures": "Pull fixtures, results & knockout teams from the API",
     "failedSyncMatches": "Failed to sync matches",
     "syncedMatches": "Matches synced: {linked} linked, {results} results applied",
-    "unmatchedMatches": "{count} API matches could not be matched to a local fixture"
+    "unmatchedMatches": "{count} API matches could not be matched to a local fixture",
+    "locking": "Locking…",
+    "recalculating": "Recalculating…"
   },
   "AdminMatches": {
     "title": "Match Management",
@@ -258,7 +260,8 @@
     "winnerRequired": "Select which team advances for a level knockout match.",
     "matchSaved": "Match result saved!",
     "failedSave": "Failed to save",
-    "failedUpdate": "Failed to update match"
+    "failedUpdate": "Failed to update match",
+    "saving": "Saving…"
   },
   "Compare": {
     "predictions": "{name}'s Predictions",

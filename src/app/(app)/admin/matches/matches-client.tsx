@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import { TeamFlag } from "@/components/team-badge";
 import { cn } from "@/lib/utils";
-import { Pencil, Check, X } from "lucide-react";
+import { Pencil, Check, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -108,6 +108,7 @@ export function MatchAdminClient({
 }) {
   const t = useTranslations("AdminMatches");
   const [editing, setEditing] = useState<EditState | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const teamNameMap = new Map(teams.map((t) => [t.id, t.name]));
   const playerNameMap = new Map(players.map((p) => [p.id, p.name]));
@@ -135,6 +136,7 @@ export function MatchAdminClient({
       toast.error(t("winnerRequired"));
       return;
     }
+    setSaving(true);
     try {
       const res = await fetch("/api/admin/match-result", {
         method: "POST",
@@ -153,6 +155,7 @@ export function MatchAdminClient({
       window.location.reload();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("failedSave"));
+      setSaving(false);
     }
   };
 
@@ -246,14 +249,24 @@ export function MatchAdminClient({
             </div>
 
             <div className="flex gap-1">
-              <Button size="sm" className="gap-1" onClick={() => handleSubmit(match)}>
-                <Check className="h-3.5 w-3.5" />
-                {t("save")}
+              <Button
+                size="sm"
+                className="gap-1"
+                disabled={saving}
+                onClick={() => handleSubmit(match)}
+              >
+                {saving ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Check className="h-3.5 w-3.5" />
+                )}
+                {saving ? t("saving") : t("save")}
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
                 aria-label="Cancel"
+                disabled={saving}
                 onClick={() => setEditing(null)}
               >
                 <X className="h-4 w-4" />

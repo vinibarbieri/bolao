@@ -31,6 +31,7 @@ interface FootballDataMatch {
 export interface SyncMatchesResult {
   linked: number; // rows that got an externalApiId stamped this run
   resultsApplied: number; // finished matches whose score/winner was written
+  deferred: number; // knockout fixtures still TBD (not yet drawn) — expected
   unmatchedStages: string[]; // API stage strings we could not map
   unmatchedMatches: string[]; // API matches with no local row to attach to
 }
@@ -99,6 +100,7 @@ export async function syncWorldCupMatches(): Promise<SyncMatchesResult> {
   const result: SyncMatchesResult = {
     linked: 0,
     resultsApplied: 0,
+    deferred: 0,
     unmatchedStages: [],
     unmatchedMatches: [],
   };
@@ -134,14 +136,18 @@ export async function syncWorldCupMatches(): Promise<SyncMatchesResult> {
                 (m.homeTeamId === awayTeamId && m.awayTeamId === homeTeamId))
           ) ?? null;
       } else {
-        // Knockout: only attach once both participants are known.
-        if (homeTeamId && awayTeamId) {
-          const queue = knockoutQueues[stage] ?? [];
-          const cursor = queueCursor[stage] ?? 0;
-          if (cursor < queue.length) {
-            local = queue[cursor];
-            queueCursor[stage] = cursor + 1;
-          }
+        // Knockout: only attach once both participants are known. Before the
+        // bracket is drawn the API lists these fixtures with TBD teams — that is
+        // expected, not a mismatch, so defer silently instead of flagging.
+        if (!homeTeamId || !awayTeamId) {
+          result.deferred++;
+          continue;
+        }
+        const queue = knockoutQueues[stage] ?? [];
+        const cursor = queueCursor[stage] ?? 0;
+        if (cursor < queue.length) {
+          local = queue[cursor];
+          queueCursor[stage] = cursor + 1;
         }
       }
     }
@@ -158,8 +164,20 @@ export async function syncWorldCupMatches(): Promise<SyncMatchesResult> {
     if (isNewLink) result.linked++;
 
     const finished = apiMatch.status === "FINISHED";
-    const homeScore = apiMatch.score.fullTime.home;
-    const awayScore = apiMatch.score.fullTime.away;
+
+    // Group rows keep their seeded home/away order, which can be the reverse of
+    // the API's orientation (rows are matched by unordered team pair). When
+    // reversed, swap the API scores so they line up with local home/away.
+    const apiReversed =
+      stage === "group" &&
+      local.homeTeamId === awayTeamId &&
+      local.awayTeamId === homeTeamId;
+    const homeScore = apiReversed
+      ? apiMatch.score.fullTime.away
+      : apiMatch.score.fullTime.home;
+    const awayScore = apiReversed
+      ? apiMatch.score.fullTime.home
+      : apiMatch.score.fullTime.away;
 
     const advancingTeamId =
       apiMatch.score.winner === "HOME_TEAM"

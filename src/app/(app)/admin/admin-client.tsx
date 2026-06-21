@@ -17,6 +17,7 @@ import {
   CalendarClock,
   Activity,
   Users,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ export function AdminClient({
   const [locking, setLocking] = useState(false);
   const [syncingPlayers, setSyncingPlayers] = useState(false);
   const [syncingMatches, setSyncingMatches] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
 
   const handleLockPredictions = async () => {
     setLocking(true);
@@ -103,6 +105,7 @@ export function AdminClient({
   };
 
   const handleRecalculate = async () => {
+    setRecalculating(true);
     try {
       const res = await fetch("/api/admin/recalculate", { method: "POST" });
       if (!res.ok) throw new Error(t("failedRecalculate"));
@@ -111,6 +114,8 @@ export function AdminClient({
       toast.error(
         error instanceof Error ? error.message : t("failedRecalculate")
       );
+    } finally {
+      setRecalculating(false);
     }
   };
 
@@ -195,8 +200,16 @@ export function AdminClient({
               variant="destructive"
               className="w-full gap-2"
             >
-              <Lock className="h-4 w-4" />
-              {config?.isLocked ? t("alreadyLocked") : t("lockNow")}
+              {locking ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Lock className="h-4 w-4" />
+              )}
+              {locking
+                ? t("locking")
+                : config?.isLocked
+                  ? t("alreadyLocked")
+                  : t("lockNow")}
             </Button>
           </CardContent>
         </Card>
@@ -212,11 +225,16 @@ export function AdminClient({
           <CardContent>
             <Button
               onClick={handleRecalculate}
+              disabled={recalculating}
               variant="secondary"
               className="w-full gap-2"
             >
-              <RefreshCw className="h-4 w-4" />
-              {t("recalculateAll")}
+              {recalculating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {recalculating ? t("recalculating") : t("recalculateAll")}
             </Button>
           </CardContent>
         </Card>
@@ -236,7 +254,11 @@ export function AdminClient({
               variant="secondary"
               className="w-full gap-2"
             >
-              <Users className="h-4 w-4" />
+              {syncingPlayers ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Users className="h-4 w-4" />
+              )}
               {syncingPlayers ? t("syncing") : t("syncPlayers")}
             </Button>
           </CardContent>
@@ -257,7 +279,11 @@ export function AdminClient({
               variant="secondary"
               className="w-full gap-2"
             >
-              <CalendarClock className="h-4 w-4" />
+              {syncingMatches ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CalendarClock className="h-4 w-4" />
+              )}
               {syncingMatches ? t("syncing") : t("syncMatches")}
             </Button>
           </CardContent>

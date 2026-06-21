@@ -234,7 +234,9 @@
     "importFixtures": "Buscar jogos, resultados e times do mata-mata pela API",
     "failedSyncMatches": "Falha ao sincronizar partidas",
     "syncedMatches": "Partidas sincronizadas: {linked} vinculadas, {results} resultados aplicados",
-    "unmatchedMatches": "{count} partidas da API não puderam ser associadas a um jogo local"
+    "unmatchedMatches": "{count} partidas da API não puderam ser associadas a um jogo local",
+    "locking": "Bloqueando…",
+    "recalculating": "Recalculando…"
   },
   "AdminMatches": {
     "title": "Gerenciamento de Partidas",
@@ -258,7 +260,8 @@
     "winnerRequired": "Selecione qual time avança em um mata-mata empatado.",
     "matchSaved": "Resultado da partida salvo!",
     "failedSave": "Falha ao salvar",
-    "failedUpdate": "Falha ao atualizar partida"
+    "failedUpdate": "Falha ao atualizar partida",
+    "saving": "Salvando…"
   },
   "Compare": {
     "predictions": "Previsões de {name}",
